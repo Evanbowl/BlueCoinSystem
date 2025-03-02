@@ -1,0 +1,25 @@
+[
+    {
+        "GroupName": "Coin",
+        "UniqueName": "BlueCoinClearGet",
+        "EffectName": [
+            "CoinGet"
+        ],
+        "OffsetX": 0.0,
+        "OffsetY": 0.0,
+        "OffsetZ": 0.0,
+        "ScaleValue": 1.0,
+        "RateValue": 1.0,
+        "PrmColor": "#7f7f7f",
+        "LightAffectValue": 0.0,
+        "DrawOrder": "AFTER_IMAGE_EFFECT",
+        "Affect": [
+            "T",
+            "R"
+        ],
+        "Follow": [
+            "T",
+            "R"
+        ]
+    }
+]
