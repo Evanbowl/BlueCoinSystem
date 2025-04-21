@@ -42,9 +42,9 @@ namespace BlueCoinUtil {
                 else {
                     char errstr[200];
                     snprintf(errstr, 200, "Blue Coin Read Error\nExpected size of %d\nGot size %d\nNANDRead code: %d\nDelete or hex edit BlueCoinData.bin and try again.\n\nHold B when this error appears to reset BlueCoinData.bin.\n", BINSIZE, size, code);
-                    u32 fg = 0xFFFFFFFF;
-                    u32 bg = 0;
-                    OSFatal(&fg, &bg, errstr);
+                    GXColor bg = { 0, 0, 0, 0 };
+                    GXColor fg = { 255, 255, 255, 255 };
+                    OSFatal(fg, bg, errstr);
                 }
             }
 
@@ -92,9 +92,9 @@ namespace BlueCoinUtil {
                 if (code != BINSIZE) {
                     char errstr[180];
                     snprintf(errstr, 180, "Blue Coin Write Error\nExpected size of %d\nNANDRead code: %d\n", BINSIZE, code);
-		            u32 fg = 0xFFFFFFFF;
-                    u32 bg = 0;
-                    OSFatal(&fg, &bg, errstr);
+		            GXColor bg = { 0, 0, 0, 0 };
+                    GXColor fg = { 255, 255, 255, 255 };
+                    OSFatal(fg, bg, errstr);
                 }
 
                 delete [] buffer;
