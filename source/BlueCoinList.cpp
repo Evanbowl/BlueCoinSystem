@@ -1,4 +1,5 @@
 #include "BlueCoinList.h"
+#include "GeneralUtil.h"
 
 BlueCoinList::BlueCoinList(const char* pName) : LayoutActor(pName, false) {
     for (s32 i = 0; i < 7; i++) {
@@ -130,11 +131,14 @@ void BlueCoinList::exeAppear() {
 
         MR::setTextBoxGameMessageRecursive(this, "ShaBlueCoinT", "BlueCoinList_Counter");
         MR::setTextBoxArgNumberRecursive(this, "ShaBlueCoinT", BlueCoinUtil::getTotalBlueCoinNumCurrentFile(false), 0);
-        MR::setTextBoxNumberRecursive(this, "ShaCoinMaxT", mBlueCoinTotalCount);
+
+        wchar_t bufProgressT[6];
+        pt::str2wcsfullwidth(bufProgressT, mBlueCoinTotalCount);
+
+        MR::setTextBoxFormatRecursive(this, "ShaCoinMaxT", bufProgressT);
 
         MR::setTextBoxGameMessageRecursive(this, "ShaBlueCoinP", "BlueCoinList_Counter");
         MR::setTextBoxArgNumberRecursive(this, "ShaBlueCoinP", mTotalCollectedCoinsInPage, 0);
-        MR::setTextBoxNumberRecursive(this, "ShaCoinMaxP", mTotalCoinsInPage);
 
         MR::startAnim(this, "Appear", 0);
     }
@@ -345,11 +349,13 @@ void BlueCoinList::updateTextBoxes() {
                 MR::hidePaneRecursive(this, coinGalaxy);
             }
         }   
-
+        
         MR::setTextBoxGameMessageRecursive(this, coinMiPaneName, "BlueCoinList_Counter");
         MR::setTextBoxArgNumberRecursive(this, coinMiPaneName, coinMiArg, 0);
-        MR::setTextBoxGameMessageRecursive(this, coinMaPaneName, "BlueCoinList_CounterMax");
-        MR::setTextBoxArgNumberRecursive(this, coinMaPaneName, coinMaArg, 0);
+        
+        wchar_t bufProgress[6];
+        pt::str2wcsfullwidth(bufProgress, coinMaArg);
+        MR::setTextBoxFormatRecursive(this, coinMaPaneName, bufProgress);
 
         wchar_t completeStr[2];
         completeStr[1] = 0;
@@ -370,7 +376,11 @@ void BlueCoinList::updateTextBoxes() {
     MR::setTextBoxArgNumberRecursive(this, "InfoPage", mCurrentPage, 0);
 
     MR::setTextBoxArgNumberRecursive(this, "ShaBlueCoinP", mTotalCollectedCoinsInPage, 0);
-    MR::setTextBoxNumberRecursive(this, "ShaCoinMaxP", mTotalCoinsInPage);
+
+    wchar_t bufProgressP[6];
+    pt::str2wcsfullwidth(bufProgressP, mTotalCoinsInPage);
+
+    MR::setTextBoxFormatRecursive(this, "ShaCoinMaxP", bufProgressP);
 }
 
 void BlueCoinList::updateBlueCoinTextPane() {

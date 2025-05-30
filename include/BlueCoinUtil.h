@@ -4,6 +4,8 @@ class BlueCoin;
 class CounterLayoutController;
 class BlueCoinCounter;
 
+class CoinBase;
+
 namespace pt {
     extern void* loadArcAndFile(const char *pArc, const char *pFile, JKRHeap *pHeap);
     extern void setTextBoxArgStringNumberFontRecursive(LayoutActor* pLayout, const char* paneName, u16 num, s32 index);
@@ -135,7 +137,8 @@ namespace BlueCoinUtil {
     /// @param pBlueCoin Blue Coin to appear
     //void appearBlueCoin(LiveActor* pSourceActor, BlueCoin* pBlueCoin);
     
-    bool tryCreateBlueCoinForSpawningActorActionKeeper(LiveActor* pSourceActor, s32 id);
-    void appearBlueCoinActionKeeper(LiveActor* pSourceActor, TVec3f& rPos);
+    CoinBase* tryCreateBlueCoinForSpawningActorActionKeeper(LiveActor* pSourceActor, const JMapInfoIter& rIter, s32 id);
+    bool tryAppearBlueCoinActionKeeper(LiveActor* pSourceActor, const TVec3f& rPosition);
     bool isValidBlueCoinActionKeeper(LiveActor* pSourceActor);
-    };
+    NameObj* createBlueCoin(const char* pName);
+};

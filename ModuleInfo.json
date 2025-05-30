@@ -6,14 +6,15 @@
     "-DBLUECOINSYSTEM",
     "-DBLUECOINBOARD"
   ],
-  "InstallDependencies": ["Syati_ObjectFactories", "Syati_Init", "CustomCoinSpawns", "PTUtils"],
+  "InstallDependancies": ["Syati_ObjectFactories", "Syati_Init", "CustomCoinSpawns", "PTUtils"],
+  "ModuleDependancies": ["PTUtils", "CoinBase_API"],
   "ModuleData" : [
     {
       "NameObjFactory": [
         {
           "Name" : "BlueCoin",
-          "Function" : "createExtActor<BlueCoin>",
-          "Include" : "BlueCoin.h"
+          "Function" : "BlueCoinUtil::createBlueCoin",
+          "Include" : "BlueCoinUtil.h"
         },
         {
           "Name" : "BlueCoinSign",

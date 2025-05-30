@@ -1,6 +1,7 @@
 #include "BlueCoinUtil.h"
 #include "BlueCoinLayouts.h"
 #include "Game/Screen/PauseMenuExt.h"
+#include "GeneralUtil.h"
 
 #if defined TWN || defined KOR
 #define REGIONOFF 0x10
@@ -23,16 +24,18 @@ void initPauseMenuBlueCoin(PauseMenuExt* pPauseMenu) {
 
 kmCall(0x80486D60+REGIONOFF, initPauseMenuBlueCoin); // bl initPauseMenuBlueCoin
 
-
 void setPauseMenuBlueCoinStageCount(PauseMenuExt* pPauseMenu) {
     s32 rangeCollected = BlueCoinUtil::getBlueCoinRangeData(0, true);
     s32 rangeTotal = BlueCoinUtil::getBlueCoinRangeData(0, false);
 
     MR::setTextBoxArgNumberRecursive(pPauseMenu, "ShaBlueCoinTotal", BlueCoinUtil::getTotalBlueCoinNumCurrentFile(false), 0);
-    MR::setTextBoxNumberRecursive(pPauseMenu, "ShaBlueCoinNum", rangeTotal);
     MR::setTextBoxFormatRecursive(pPauseMenu, "ShaCoinListWin", L"");
-
-    if (rangeCollected > -1) {
+    
+    if (rangeTotal > -1) {
+        wchar_t str[5];
+        pt::str2wcsfullwidth(str, rangeTotal);
+        MR::setTextBoxFormatRecursive(pPauseMenu, "ShaBlueCoinNum", str);
+    
         MR::setTextBoxArgNumberRecursive(pPauseMenu, "ShaBlueCoinStage", rangeCollected, 0);
         MR::showPaneRecursive(pPauseMenu, "ShaBlueCoinStage");
     }

@@ -2,16 +2,14 @@
 
 #include "syati.h"
 #include "BlueCoinUtil.h"
+#include "CoinBase.h"
 
-class BlueCoin : public Coin {
+class BlueCoin : public CoinBase {
     public:
     BlueCoin(const char*);
     virtual void init(const JMapInfoIter& rIter);
     virtual void control();
-    virtual bool receiveMessage(u32 msg, HitSensor* pSender, HitSensor* pReceiver);
-    void collect();
-    void appearAndMove();
-    void initAirBubble();
+    virtual bool vRequestGetCoin();
 
     s32 mID;
     f32 mLaunchVelocity;

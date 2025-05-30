@@ -335,7 +335,7 @@ namespace BlueCoinUtil {
         return table;
     }
 
-    bool tryCreateBlueCoinForSpawningActorActionKeeper(LiveActor* pSourceActor, s32 id) {
+    CoinBase* tryCreateBlueCoinForSpawningActorActionKeeper(LiveActor* pSourceActor, const JMapInfoIter& rIter, s32 id) {
         if (id > -1) {
             BlueCoin* coin = new BlueCoin("BlueCoinS");
             MR::addToCoinHolder(pSourceActor, coin);
@@ -344,28 +344,38 @@ namespace BlueCoinUtil {
             MR::hideModel(coin);
             MR::invalidateHitSensors(coin);
             ExtActorActionKeeper* pKeeper = (ExtActorActionKeeper*)pSourceActor->mActionKeeper;
-            pKeeper->mBlueCoin = coin;
+            pKeeper->mNewActor = coin;
             pKeeper->mItemGenerator = 0;
-            return true;
+            return coin;
         }
         return false;
     }
-
-    void appearBlueCoinActionKeeper(LiveActor* pSourceActor, TVec3f& rPos) {
+    
+    bool tryAppearBlueCoinActionKeeper(LiveActor* pSourceActor, const TVec3f& rPosition) {
+        OSReport("Blue Coin Spawning for %s\n", pSourceActor->mName);
         ExtActorActionKeeper* pKeeper = (ExtActorActionKeeper*)pSourceActor->mActionKeeper;
-        if (pKeeper->mBlueCoin) {
+        BlueCoin* pKeeperActor = (BlueCoin*)pKeeper->mNewActor;
+        if (pKeeperActor) {
             TVec3f coinVelocity = TVec3f(0.0f, 25.0f, 0.0f);
             coinVelocity.scale(coinVelocity.y, -pSourceActor->mGravity);
 
             MR::startSystemSE("SE_SY_PURPLE_COIN_APPEAR", -1, -1);
 
-            pKeeper->mBlueCoin->appearMove(rPos, coinVelocity, 0x7FFFFFFF, 60);
+            pKeeperActor->appearMove(rPosition, coinVelocity, 0x7FFFFFFF, 60);
+            return true;
         }
+
+        return false;
     }
 
     bool isValidBlueCoinActionKeeper(LiveActor* pSourceActor) {
         ExtActorActionKeeper* pKeeper = (ExtActorActionKeeper*)pSourceActor->mActionKeeper;
-        return pKeeper->mBlueCoin;
+        BlueCoin* pKeeperActor = (BlueCoin*)pKeeper->mNewActor;
+        return (bool)pKeeperActor;
+    }
+
+    NameObj* createBlueCoin(const char* pName) {
+        return new BlueCoin(pName);
     }
 }
 
