@@ -392,7 +392,7 @@ void BlueCoinBoard::exeCountDownBlueCoin() {
     }
     else {
         MR::startPaneAnim(this, "CounterBlueCoin", "Flash", 0);
-        MR::emitEffect(this, "BlueCoinBoardCounterLight");
+        MR::tryEmitEffect(this, "BlueCoinBoardCounterLight");
         mBlueCoinPaneRumbler->start();
         mHasSpentBlueCoins = true;
         BlueCoinUtil::spendBlueCoinCurrentFile(priceFromTable);
