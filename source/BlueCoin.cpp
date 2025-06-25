@@ -26,13 +26,14 @@ void BlueCoin::init(const JMapInfoIter& rIter) {
     }
     
     if (BlueCoinUtil::isBlueCoinGotCurrentFile(mID))
-    name = "BlueCoinClear";
+        name = "BlueCoinClear";
     
     strcpy(mCoinInfo.mMirrorActorName, name);
     if (MR::isValidInfo(rIter)) {
         MR::processInitFunction(this, rIter, name, false);
         MR::initSwitches(this, rIter, "BlueCoin", 0);
     }
+
     else {
         MR::processInitFunction(this, name, false);
         MR::initShadowVolumeSphere(this, 50.0f);
@@ -81,41 +82,3 @@ bool BlueCoin::vRequestGetCoin() {
     noticeGetCoin();
     return 1;
 }
-
-/*
-
-void BlueCoin::collect() {
-    mIsCollected = true;
-    setNerve(&NrvCoin::CoinNrvGot::sInstance);
-    
-    if (MR::isValidSwitchA(this))
-        MR::onSwitchA(this);
-
-    if (mIsInBubble) {
-        MR::emitEffect(mAirBubble, "RecoveryBubbleBreak");
-        mAirBubble->kill();
-    }
-    
-    #if defined SMG63 
-        MR::emitEffect(this, "BlueCoinGet"); 
-        MR::startSystemSE("SE_SY_TICO_COIN", -1, -1);
-    #else
-        MR::emitEffect(this, BlueCoinUtil::isBlueCoinGotCurrentFile(mID) ? "BlueCoinClearGet" : "BlueCoinGet"); 
-        MR::startSystemSE("SE_SY_PURPLE_COIN", -1, -1);
-    #endif
-
-
-    
-    if (!BlueCoinUtil::isBlueCoinGotCurrentFile(mID)) {
-        BlueCoinUtil::setBlueCoinGotCurrentFile(mID);
-
-        if (!BlueCoinUtil::hasSeenBlueCoinTextBoxCurrentFile())
-            BlueCoinUtil::showTextBox();
-    }
-    
-    if (!MR::isGalaxyDarkCometAppearInCurrentStage())
-        MR::incCoin(1, this);
-
-    MR::incPlayerOxygen(mIsInBubble ? 2 : 1);
-    makeActorDead();
-}*/

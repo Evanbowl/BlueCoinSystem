@@ -1,12 +1,12 @@
-#ifdef BLUECOINBOARD
-#pragma once
 #include "syati.h"
+#ifdef BLUECOINBOARD
 #include "BlueCoinUtil.h"
 #include "Game/Screen/ButtonPaneController.h"
 #include "Game/Screen/SysInfoWindow.h"
 #include "Game/Screen/CountUpPaneRumbler.h"
 #include "Game/Screen/BackButton.h"
 #include "Game/Map/PauseBlur.h"
+#pragma once
 
 #define BLUE_COIN_BOARD_COMPLETE 8
 
@@ -77,3 +77,7 @@ namespace NrvBlueCoinSign {
     NERVE(NrvOpen);
 };
 #endif
+
+namespace BlueCoinSignUtil {
+    NameObj* createBlueCoinSign(const char* pName);
+};

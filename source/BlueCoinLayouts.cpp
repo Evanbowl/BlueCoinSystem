@@ -166,6 +166,7 @@ void PauseMenuIDListControls(PauseMenuExt* pPauseMenu) {
 
 #ifndef PAUSEMENUNEWBUTTON
 PauseMenuExt* createPauseMenuExt() {
+    OSReport("Pause Menu Created\n");
     return new PauseMenuExt();
 }
 

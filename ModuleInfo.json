@@ -6,7 +6,7 @@
     "-DBLUECOINSYSTEM",
     "-DBLUECOINBOARD"
   ],
-  "InstallDependancies": ["Syati_ObjectFactories", "Syati_Init", "CustomCoinSpawns", "PTUtils"],
+  "InstallDependancies": ["Syati_ObjectFactories", "Syati_Init", "PTUtils"],
   "ModuleDependancies": ["PTUtils", "CoinBase_API"],
   "ModuleData" : [
     {
@@ -18,7 +18,7 @@
         },
         {
           "Name" : "BlueCoinSign",
-          "Function" : "createExtActor<BlueCoinSign>",
+          "Function" : "BlueCoinSignUtil::createBlueCoinSign",
           "Include" : "BlueCoinBoard.h"
         }
       ],
@@ -35,8 +35,16 @@
         },
         {
           "Type1" : "1",
-          "Type2" : "8",
+          "Type2" : "7",
           "Path" : "/LayoutData/BlueCoinCounterInStage.arc"
+        }
+      ],
+      "CoinBaseSpawning": [
+        {
+          "ID" : "1",
+          "CoinCreateFunc" : "BlueCoinUtil::tryCreateBlueCoinForSpawningActorActionKeeper",
+          "CoinAppearFunc" : "BlueCoinUtil::tryAppearBlueCoinActionKeeper",
+          "Include" : "BlueCoinUtil.h"
         }
       ]
     }
