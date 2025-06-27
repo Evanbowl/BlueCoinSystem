@@ -45,8 +45,12 @@ void BlueCoin::init(const JMapInfoIter& rIter) {
     
     MR::initSensors(this, "BlueCoin", 0);
 
-    if (MR::isValidSwitchB(this))
+    if (MR::isValidSwitchB(this)) {
         requestHide();
+        MR::invalidateHitSensors(this);
+    }
+    else
+        makeActorAppeared();
 }
 
 
