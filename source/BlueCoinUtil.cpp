@@ -32,30 +32,37 @@ namespace BlueCoinUtil {
             NANDGetLength(&info, &size);
 
             if (size != BINSIZE) {
-                if (MR::testCorePadButtonB(0)) {
-                    saveBlueCoinData();
+                if (size == 873) {
+                    NANDClose(&info);
+                    updateToNewFormat();
                 }
                 else {
-                    char errstr[200];
-                    snprintf(errstr, 200, "Blue Coin Read Error\nExpected size of %d\nGot size %d\nNANDRead code: %d\nDelete or hex edit BlueCoinData.bin and try again.\n\nHold B when this error appears to reset BlueCoinData.bin.\n", BINSIZE, size, code);
-                    GXColor bg = { 0, 0, 0, 0 };
-                    GXColor fg = { 255, 255, 255, 255 };
-                    OSFatal(fg, bg, errstr);
+                    if (MR::testCorePadButtonB(0)) {
+                        saveBlueCoinData();
+                    }
+                    else {
+                        char errstr[200];
+                        snprintf(errstr, 200, "Blue Coin Read Error\nExpected size of %d\nGot size %d\nNANDRead code: %d\nDelete or hex edit BlueCoinData.bin and try again.\n\nHold B when this error appears to reset BlueCoinData.bin.\n", BINSIZE, size, code);
+                        GXColor bg = { 0, 0, 0, 0 };
+                        GXColor fg = { 255, 255, 255, 255 };
+                        OSFatal(fg, bg, errstr);
+                    }
                 }
             }
-
-            u8* buffer = new(0x20) u8[BINSIZE];
-            code = NANDRead(&info, buffer, BINSIZE);
+            else {
+                u8* buffer = new(0x20) u8[BINSIZE];
+                code = NANDRead(&info, buffer, BINSIZE);
+                
+                memcpy(gBlueCoinData->mCollectionData->mFlags, &buffer[0], getCollectionByteNum());
+                memcpy(gBlueCoinData->mFlags->mFlags, &buffer[96], getFlagsByteNum());
+                
+                for (int i = 0; i < 3; i++) {
+                    memcpy(&gBlueCoinData->mSpentData[i], &buffer[108+(2*i)], 2);
+                    gBlueCoinData->mHasSeenTextBox[i] = buffer[114+i];
+                }
             
-            memcpy(gBlueCoinData->mCollectionData->mFlags, &buffer[0], getCollectionByteNum());
-            memcpy(gBlueCoinData->mFlags->mFlags, &buffer[96], getFlagsByteNum());
-
-            for (int i = 0; i < 3; i++) {
-                memcpy(&gBlueCoinData->mSpentData[i], &buffer[108+(2*i)], 2);
-                gBlueCoinData->mHasSeenTextBox[i] = buffer[114+i];
+                delete [] buffer;
             }
-
-            delete [] buffer;
             OSReport("(BlueCoinUtil) BlueCoinData.bin successfully read.\n");
             printBlueCoinSaveFileInfo();
         }
@@ -95,6 +102,34 @@ namespace BlueCoinUtil {
             }
             NANDClose(&info);
         }
+    }
+
+    void updateToNewFormat() {
+        OSReport("Attempting BlueCoinData.bin update\n");
+
+        NANDFileInfo info;
+        u8* buffer = new(0x20) u8[873];
+        s32 code = NANDOpen("BlueCoinData.bin", &info, 3);
+        code = NANDRead(&info, buffer, 873);
+        
+        for (int i = 0; i < 768; i++) {
+            gBlueCoinData->mCollectionData->set(i, buffer[i]);
+        }
+
+        for (int i = 0; i < 96; i++) {
+            gBlueCoinData->mFlags->set(i, buffer[768+i]);
+        }
+
+        for (int i = 0; i < 3; i++) {
+            memcpy(&gBlueCoinData->mSpentData[i], &buffer[864+(2*i)], 2);
+            gBlueCoinData->mHasSeenTextBox[i] = buffer[870+i];
+        }
+
+        NANDClose(&info);
+        int code2 = NANDDelete("BlueCoinData.bin");
+        delete buffer;
+        OSReport("BlueCoinData.bin update completed! Saving...");
+        saveBlueCoinData();
     }
 
     int getCollectionByteNum() {
@@ -406,3 +441,9 @@ void onTitleScreenLoad(FileSelector* pFileSelector) {
 }
 
 kmCall(0x8024F358, onTitleScreenLoad); // bl saveBlueCoinDataOnGameSave
+
+GameSequenceInGame* getGameSequenceInGameTest() {
+    OSReport("Yes\n"); 
+    return GameSequenceFunction::getGameSequenceInGame();
+}
+kmCall(0x804D6644, getGameSequenceInGameTest);
