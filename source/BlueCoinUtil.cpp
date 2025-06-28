@@ -76,9 +76,7 @@ namespace BlueCoinUtil {
                 
                 for (int i = 0; i < 3; i++) {
                     memcpy(&buffer[108+(2*i)], &gBlueCoinData->mSpentData[i], 2);
-                    OSReport("%d\n", 108+(2*i));
                     buffer[114+i] = gBlueCoinData->mHasSeenTextBox[i];
-                    OSReport("%d\n", 114+i);
                 }
                 
                 code = NANDWrite(&info, buffer, BINSIZE);
@@ -100,15 +98,11 @@ namespace BlueCoinUtil {
     }
 
     int getCollectionByteNum() {
-        int f = (gBlueCoinData->mCollectionData->mFlagCount + 7 & ~7) / 8;
-        OSReport("Collection %d\n", f);
-        return f;
+        return (gBlueCoinData->mCollectionData->mFlagCount + 7 & ~7) / 8;
     }
 
     int getFlagsByteNum() {
-        int f = (gBlueCoinData->mFlags->mFlagCount + 7 & ~7) / 8;
-        OSReport("Flags %d\n", f);
-        return f;
+        return (gBlueCoinData->mFlags->mFlagCount + 7 & ~7) / 8;
     }
 
     void printBlueCoinSaveFileInfo() {
@@ -178,19 +172,15 @@ namespace BlueCoinUtil {
     }
 
     void setBlueCoinGotCurrentFile(u16 id) {
-        int coinId = (256*getCurrentFileNum())+id;
-        OSReport("Coin id %d\n", coinId);
-        gBlueCoinData->mCollectionData->set(coinId, 1);
+        gBlueCoinData->mCollectionData->set((256*getCurrentFileNum())+id, true);
     }
 
     bool isBlueCoinGot(u8 file, u16 id) {
-        int coinId = (256*file)+id;
-        return gBlueCoinData->mCollectionData->isOn(coinId);
+        return gBlueCoinData->mCollectionData->isOn((256*file)+id);
     }
     
     bool isBlueCoinGotCurrentFile(u16 id) {
-        int coinId = (256*getCurrentFileNum())+id;
-        return gBlueCoinData->mCollectionData->isOn(coinId);
+        return gBlueCoinData->mCollectionData->isOn((256*getCurrentFileNum())+id);
     }
 
     bool hasSeenBlueCoinTextBoxCurrentFile() {
@@ -210,10 +200,9 @@ namespace BlueCoinUtil {
     }
 
     void resetAllBlueCoin(u8 file) {
-        file--;
         int collectionCount = gBlueCoinData->mCollectionData->mFlagCount;
-        MR::zeroMemory(gBlueCoinData->mCollectionData->mFlags, getCollectionByteNum());
-        MR::zeroMemory(gBlueCoinData->mFlags, getFlagsByteNum());
+        MR::zeroMemory(&gBlueCoinData->mCollectionData->mFlags[32*file], getCollectionByteNum()/3);
+        MR::zeroMemory(&gBlueCoinData->mFlags->mFlags[32*file], getFlagsByteNum()/3);
         gBlueCoinData->mSpentData[file] = 0;
         gBlueCoinData->mHasSeenTextBox[file] = 0;
     }
@@ -390,7 +379,7 @@ namespace BlueCoinUtil {
 // Delete all blue coins in a save file.
 void resetAllBlueCoinOnDeleteFile(SaveDataHandleSequence* pSeq, UserFile* pFile, int fileID) {
     pSeq->restoreUserFileConfigData(pFile, fileID); // Restore original call
-    BlueCoinUtil::resetAllBlueCoin(fileID);
+    BlueCoinUtil::resetAllBlueCoin(fileID-1);
 }
 
 kmCall(0x804D9BF8, resetAllBlueCoinOnDeleteFile); // bl resetAllBlueCoinOnDeleteFile
