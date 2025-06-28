@@ -17,20 +17,31 @@ namespace pt {
 /// @param spentData Spent Blue Coin Amounts
 /// @param hasSeenTextBox Has Seen One-Time Text Box
 struct BlueCoinData {
-    bool** collectionData;
-    bool flags[3][32];
-    u16 spentData[3];
-    bool hasSeenTextBox[3];
+    // Old
+    //bool** collectionData;
+    //bool flags[3][32];
+    //u16 spentData[3];
+    //bool hasSeenTextBox[3];
+
+    // After CoinBase Update
+    MR::BitArray* mCollectionData;
+    MR::BitArray* mFlags;
+    u16 mSpentData[3];
+    bool mHasSeenTextBox[3];
 };
 
 extern BlueCoinData* gBlueCoinData;
 
 namespace BlueCoinUtil {
     /// @brief Loads BlueCoinData.bin into gBlueCoinData bool array. Made with help from Lord-Giganticus.
-    void loadBlueCoinData();
+    //void loadBlueCoinData();
     
     /// @brief Saves gBlueCoinData bool array into BlueCoinData.bin. Made with help from Lord-Giganticus.
     void saveBlueCoinData();
+
+    int getCollectionByteNum();
+
+    int getFlagsByteNum();
 
     /// @brief Prints the Blue Coin counts of each save file and gBlueCoinFlag's value to the log.
     void printBlueCoinSaveFileInfo();

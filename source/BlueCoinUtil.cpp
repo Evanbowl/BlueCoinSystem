@@ -7,11 +7,7 @@
 #include "Game/MapObj/FileSelector.h"
 #include "Game/LiveActor/ExtActorActionKeeper.h"
 
-#define BINSIZE 873
-
-#define FLAGS_LOCATION 768
-#define SPENT_LOCATION 864
-#define TEXTBOX_LOCATION 870
+#define BINSIZE 117
 
 void* initializeBlueCoinArrayAndLoadTable() {
     BlueCoinUtil::initBlueCoinArray();
@@ -50,15 +46,13 @@ namespace BlueCoinUtil {
 
             u8* buffer = new(0x20) u8[BINSIZE];
             code = NANDRead(&info, buffer, BINSIZE);
+            
+            memcpy(gBlueCoinData->mCollectionData->mFlags, &buffer[0], getCollectionByteNum());
+            memcpy(gBlueCoinData->mFlags->mFlags, &buffer[96], getFlagsByteNum());
 
             for (int i = 0; i < 3; i++) {
-                memcpy(gBlueCoinData->collectionData[i], &buffer[256*i], 256);
-
-                memcpy(gBlueCoinData->flags[i], &buffer[FLAGS_LOCATION+(32*i)], 32);
-
-                memcpy(&gBlueCoinData->spentData[i], &buffer[SPENT_LOCATION+(2*i)], 2);
-
-                gBlueCoinData->hasSeenTextBox[i] = buffer[TEXTBOX_LOCATION+i];
+                memcpy(&gBlueCoinData->mSpentData[i], &buffer[108+(2*i)], 2);
+                gBlueCoinData->mHasSeenTextBox[i] = buffer[114+i];
             }
 
             delete [] buffer;
@@ -76,15 +70,15 @@ namespace BlueCoinUtil {
             if (code == 0) {
                 NANDSeek(&info, 0, 0);
                 u8* buffer = new(0x20) u8[BINSIZE];
+                memcpy(&buffer[0], gBlueCoinData->mCollectionData->mFlags, getCollectionByteNum());
 
+                memcpy(&buffer[96], gBlueCoinData->mFlags->mFlags, getFlagsByteNum());
+                
                 for (int i = 0; i < 3; i++) {
-                    memcpy(&buffer[256*i], gBlueCoinData->collectionData[i], 256);
-
-                    memcpy(&buffer[FLAGS_LOCATION+(32*i)], gBlueCoinData->flags[i], 32);
-
-                    memcpy(&buffer[SPENT_LOCATION+(2*i)], &gBlueCoinData->spentData[i], 2);
-
-                    buffer[TEXTBOX_LOCATION+i] = gBlueCoinData->hasSeenTextBox[i];
+                    memcpy(&buffer[108+(2*i)], &gBlueCoinData->mSpentData[i], 2);
+                    OSReport("%d\n", 108+(2*i));
+                    buffer[114+i] = gBlueCoinData->mHasSeenTextBox[i];
+                    OSReport("%d\n", 114+i);
                 }
                 
                 code = NANDWrite(&info, buffer, BINSIZE);
@@ -105,6 +99,18 @@ namespace BlueCoinUtil {
         }
     }
 
+    int getCollectionByteNum() {
+        int f = (gBlueCoinData->mCollectionData->mFlagCount + 7 & ~7) / 8;
+        OSReport("Collection %d\n", f);
+        return f;
+    }
+
+    int getFlagsByteNum() {
+        int f = (gBlueCoinData->mFlags->mFlagCount + 7 & ~7) / 8;
+        OSReport("Flags %d\n", f);
+        return f;
+    }
+
     void printBlueCoinSaveFileInfo() {
         char flagstr[3][36];
         s32 numcoins[3];
@@ -118,13 +124,13 @@ namespace BlueCoinUtil {
                 if (j % 9 == 8)
                     flagstr[i][j] = 0x20;
                 else {
-                    flagstr[i][j] = gBlueCoinData->flags[i][flagidx] ? 0x31 : 0x30;
+                    flagstr[i][j] = gBlueCoinData->mFlags->isOn((32*i)+flagidx) ? 0x31 : 0x30;
                     flagidx++;
                 }
             }
 
             for (s32 j = 0; j < 256; j++) {
-                if (gBlueCoinData->collectionData[i][j])
+                if (gBlueCoinData->mCollectionData->isOn((256*i)+j))
                     numcoins[i]++;
             }
         }
@@ -136,35 +142,33 @@ namespace BlueCoinUtil {
         flagstr[0],
         flagstr[1],
         flagstr[2],
-        gBlueCoinData->spentData[0],
-        gBlueCoinData->spentData[1],
-        gBlueCoinData->spentData[2],
-        gBlueCoinData->hasSeenTextBox[0] ? "Yes" : "No",
-        gBlueCoinData->hasSeenTextBox[1] ? "Yes" : "No",
-        gBlueCoinData->hasSeenTextBox[2] ? "Yes" : "No"
+        gBlueCoinData->mSpentData[0],
+        gBlueCoinData->mSpentData[1],
+        gBlueCoinData->mSpentData[2],
+        gBlueCoinData->mHasSeenTextBox[0] ? "Yes" : "No",
+        gBlueCoinData->mHasSeenTextBox[1] ? "Yes" : "No",
+        gBlueCoinData->mHasSeenTextBox[2] ? "Yes" : "No"
         );
     }
 
-    void clearBlueCoinData() {
-        for (int i = 0; i < 3; i++) {
-            memset(gBlueCoinData->collectionData[i], 0, 256);
-            memset(gBlueCoinData->flags[i], 0, 32);
-            gBlueCoinData->spentData[i] = 0;
-            gBlueCoinData->hasSeenTextBox[i] = 0;
-        }
-        
-        OSReport("(BlueCoinUtil) Blue Coin array cleared.\n");
-    }
+   void clearBlueCoinData() {
+       for (int i = 0; i < 3; i++) {
+           MR::zeroMemory(gBlueCoinData->mCollectionData->mFlags, getCollectionByteNum());
+           MR::zeroMemory(gBlueCoinData->mFlags->mFlags, getFlagsByteNum());
+           gBlueCoinData->mSpentData[i] = 0;
+           gBlueCoinData->mHasSeenTextBox[i] = 0;
+       }
+       
+       OSReport("(BlueCoinUtil) Blue Coin array cleared.\n");
+   }
 
     void initBlueCoinArray() {
         gBlueCoinData = new BlueCoinData;
-        gBlueCoinData->collectionData = new bool*[3];
+        gBlueCoinData->mCollectionData = new MR::BitArray(256*3);
+        gBlueCoinData->mFlags = new MR::BitArray(32*3);
         for (int i = 0; i < 3; i++) {
-            gBlueCoinData->collectionData[i] = new bool[256];
-            memset(gBlueCoinData->collectionData[i], 0, 256);
-            memset(gBlueCoinData->flags[i], 0, 32);
-            gBlueCoinData->hasSeenTextBox[i] = 0;
-            gBlueCoinData->spentData[i] = 0;
+            gBlueCoinData->mSpentData[i] = 0;
+            gBlueCoinData->mHasSeenTextBox[i] = 0;
         }
         OSReport("(BlueCoinUtil) Blue Coin array initialized.\n");
     }
@@ -174,42 +178,44 @@ namespace BlueCoinUtil {
     }
 
     void setBlueCoinGotCurrentFile(u16 id) {
-        gBlueCoinData->collectionData[getCurrentFileNum()][id] = true;
+        int coinId = (256*getCurrentFileNum())+id;
+        OSReport("Coin id %d\n", coinId);
+        gBlueCoinData->mCollectionData->set(coinId, 1);
     }
 
     bool isBlueCoinGot(u8 file, u16 id) {
-        return gBlueCoinData->collectionData[file][id];
+        int coinId = (256*file)+id;
+        return gBlueCoinData->mCollectionData->isOn(coinId);
     }
     
     bool isBlueCoinGotCurrentFile(u16 id) {
-        return gBlueCoinData->collectionData[getCurrentFileNum()][id];
+        int coinId = (256*getCurrentFileNum())+id;
+        return gBlueCoinData->mCollectionData->isOn(coinId);
     }
 
     bool hasSeenBlueCoinTextBoxCurrentFile() {
-        return gBlueCoinData->hasSeenTextBox[getCurrentFileNum()];
+        return gBlueCoinData->mHasSeenTextBox[getCurrentFileNum()];
     }  
 
     void setSeenBlueCoinTextBoxCurrentFile() {
-        gBlueCoinData->hasSeenTextBox[getCurrentFileNum()] = true;
+        gBlueCoinData->mHasSeenTextBox[getCurrentFileNum()] = true;
     }
 
     void setOnBlueCoinFlagCurrentFile(u8 flag) {
-        gBlueCoinData->flags[getCurrentFileNum()][flag] = true;
+        gBlueCoinData->mFlags->set((32*getCurrentFileNum())+flag, true);
     }
 
     bool isOnBlueCoinFlagCurrentFile(u8 flag) {
-        return gBlueCoinData->flags[getCurrentFileNum()][flag];
+        return gBlueCoinData->mFlags->isOn((32*getCurrentFileNum())+flag);
     }
 
     void resetAllBlueCoin(u8 file) {
         file--;
-        memset(gBlueCoinData->collectionData[file], 0, 256);
-        gBlueCoinData->spentData[file] = 0;
-        gBlueCoinData->hasSeenTextBox[file] = 0;
-
-        for (int i = 0; i < 32; i++) {
-            gBlueCoinData->flags[file][i] = 0;
-        }
+        int collectionCount = gBlueCoinData->mCollectionData->mFlagCount;
+        MR::zeroMemory(gBlueCoinData->mCollectionData->mFlags, getCollectionByteNum());
+        MR::zeroMemory(gBlueCoinData->mFlags, getFlagsByteNum());
+        gBlueCoinData->mSpentData[file] = 0;
+        gBlueCoinData->mHasSeenTextBox[file] = 0;
     }
 
     bool isBlueCoinTextBoxAppeared() {
@@ -232,21 +238,21 @@ namespace BlueCoinUtil {
         numcoin == 0 ? 30 : numcoin;
         
         if (getTotalBlueCoinNumCurrentFile(true) >= numcoin)
-            gBlueCoinData->spentData[getCurrentFileNum()] += numcoin;
+            gBlueCoinData->mSpentData[getCurrentFileNum()] += numcoin;
     }
 
     s32 getSpentBlueCoinNum(u8 file) {
-        return gBlueCoinData->spentData[file];
+        return gBlueCoinData->mSpentData[file];
     }
 
     s32 getSpentBlueCoinNumCurrentFile() {
-        return gBlueCoinData->spentData[getCurrentFileNum()];
+        return gBlueCoinData->mSpentData[getCurrentFileNum()];
     }
 
     s32 getTotalBlueCoinNum(u8 file, bool ignoreSpent) {
         s32 total = 0;
         for (s32 i = 0; i < 256; i++) {
-            if (gBlueCoinData->collectionData[file][i])
+            if (gBlueCoinData->mCollectionData->isOn((256*file)+i))
                 total++;
         }
 
