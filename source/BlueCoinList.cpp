@@ -394,6 +394,10 @@ void BlueCoinList::updateBlueCoinTextPane() {
         if (!isEntryBlank(entry)) {
             s32 coinId = entry->rangeMin;
             s32 totalCoins = (entry->rangeMax-entry->rangeMin)+1;
+            
+            if (totalCoins > 30)
+                totalCoins = 30;
+                
             for (s32 i = 0; i < totalCoins + (s32)(totalCoins > 15); i++) {
 
                 if (i == totalCoins/2 && totalCoins > 15) {

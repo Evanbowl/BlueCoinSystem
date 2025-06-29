@@ -6,6 +6,22 @@ class BlueCoinCounter;
 
 class CoinBase;
 
+// These can be customized but save files will not carry over.
+// Modifying these will disable the updater.
+#define COLLECTIONCOUNT 256
+#define FLAGSCOUNT 32
+
+
+#define FLAGSLOC (COLLECTIONCOUNT*3)/8
+#define SPENTLOC FLAGSLOC+(FLAGSCOUNT*3)/8
+#define TEXTLOC SPENTLOC+6
+
+#define BINSIZE (((COLLECTIONCOUNT+FLAGSCOUNT)/8)*3+9)
+
+#define USEUPDATER (COLLECTIONCOUNT == 256 && FLAGSCOUNT == 32)
+
+const int t2 = USEUPDATER;
+
 namespace pt {
     extern void* loadArcAndFile(const char *pArc, const char *pFile, JKRHeap *pHeap);
     extern void setTextBoxArgStringNumberFontRecursive(LayoutActor* pLayout, const char* paneName, u16 num, s32 index);
@@ -98,7 +114,7 @@ namespace BlueCoinUtil {
     void showTextBox();    
     /// @brief Spends an amount of Blue Coins on the current file. Using 0 defaults to 30.
     /// @param numcoin Number of coins to spend
-    void spendBlueCoinCurrentFile(u8 numcoin);
+    void spendBlueCoinCurrentFile(u16 numcoin);
     
     /// @brief Returns the total number of spent blue coins on the specified file.
     /// @param file File ID

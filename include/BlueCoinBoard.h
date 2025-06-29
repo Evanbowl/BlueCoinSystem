@@ -1,4 +1,5 @@
 #include "syati.h"
+
 #ifdef BLUECOINBOARD
 #include "BlueCoinUtil.h"
 #include "Game/Screen/ButtonPaneController.h"
@@ -33,7 +34,7 @@ public:
     SysInfoWindow* mSysInfoWindowBox;
     CountUpPaneRumbler* mBlueCoinPaneRumbler;
     BackButtonCancelB* mBackButton;
-    JMapInfo* mTable;
+    const JMapInfo* mTable;
     TVec2f mButtonFollowPositions[8];
     TVec2f mBlueCoinCounterFollowPos;
     char mBoxButtonName[8][12];

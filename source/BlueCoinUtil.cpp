@@ -7,17 +7,6 @@
 #include "Game/MapObj/FileSelector.h"
 #include "Game/LiveActor/ExtActorActionKeeper.h"
 
-// These can be customized but care needs to be taken if preserving the blue coin save file is preferred.
-#define COLLECTIONCOUNT 256
-#define FLAGSCOUNT 32
-
-
-
-#define FLAGSLOC (COLLECTIONCOUNT*3)/8
-#define SPENTLOC FLAGSLOC+(FLAGSCOUNT*3)/8
-#define TEXTLOC SPENTLOC+6
-
-#define BINSIZE (((COLLECTIONCOUNT+FLAGSCOUNT)/8)*3+9)
 
 void* initializeBlueCoinArrayAndLoadTable() {
     BlueCoinUtil::initBlueCoinArray();
@@ -43,7 +32,7 @@ namespace BlueCoinUtil {
 
             if (size != BINSIZE) {
                 NANDClose(&info);
-                if (size == 873) {
+                if (size == 873 && USEUPDATER) {
                     updateToNewFormat();
                 }
                 else if (MR::testCorePadButtonB(0)) {
@@ -51,7 +40,7 @@ namespace BlueCoinUtil {
                 }
                 else {
                     char errstr[200];
-                    snprintf(errstr, 200, "Blue Coin Read Error\nExpected size of %d\nGot size %d\n\n Max Coins: %d, Max Flags: %d\nNANDRead code: %d\nDelete or hex edit BlueCoinData.bin and try again.\n\nRestart, and hold B when this error appears to attempt an update.\n", BINSIZE, COLLECTIONCOUNT, FLAGSCOUNT, size, code);
+                    snprintf(errstr, 200, "Blue Coin Read Error\nExpected size of %d\nGot size %d\n\n Max Coins: %d, Max Flags: %d\nNANDRead code: %d\nDelete or hex edit BlueCoinData.bin and try again.\n\nRestart, and hold B when this error appears to attempt an update.\n", BINSIZE, size, COLLECTIONCOUNT, FLAGSCOUNT, code);
                     GXColor bg = { 0, 0, 0, 0 };
                     GXColor fg = { 255, 255, 255, 255 };
                     OSFatal(fg, bg, errstr);
@@ -76,7 +65,7 @@ namespace BlueCoinUtil {
         }
         NANDClose(&info);
     }
-
+    
     void saveBlueCoinData() {
         s32 code = NANDCreate("BlueCoinData.bin", 0x30, 0);
         if (code == 0 || code == -6) {
@@ -111,6 +100,7 @@ namespace BlueCoinUtil {
         }
     }
 
+    #ifdef USEUPDATER
     void updateToNewFormat() {
         OSReport("Attempting BlueCoinData.bin update\n");
 
@@ -138,6 +128,7 @@ namespace BlueCoinUtil {
         OSReport("BlueCoinData.bin has been updated to the default sizing. Saving...\n");
         saveBlueCoinData();
     }
+    #endif
 
     int getCollectionByteNum() {
         return (gBlueCoinData->mCollectionData->mFlagCount + 7 & ~7) / 8;
@@ -269,7 +260,7 @@ namespace BlueCoinUtil {
         ((CounterLayoutControllerExt*)MR::getGameSceneLayoutHolder()->mCounterLayoutController)->mBlueCoinCounter->setNerve(&NrvBlueCoinCounter::NrvShowTextBox::sInstance);
     }
 
-    void spendBlueCoinCurrentFile(u8 numcoin) {
+    void spendBlueCoinCurrentFile(u16 numcoin) {
         numcoin == 0 ? 30 : numcoin;
         
         if (getTotalBlueCoinNumCurrentFile(true) >= numcoin)

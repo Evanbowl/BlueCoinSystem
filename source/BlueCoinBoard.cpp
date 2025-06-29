@@ -24,7 +24,6 @@
     
     I thank SPG64, Lord Giganticus, and Xandog for very helpful feedback.
 */
-void* gBoardDataTable = pt::loadArcAndFile("/SystemData/BlueCoinBoardDataTable.arc", "/BlueCoinBoardDataTable.bcsv", 0); 
 
 BlueCoinSign::BlueCoinSign(const char* pName) : NPCActor(pName) {
     pBoard = 0;
@@ -105,8 +104,7 @@ BlueCoinBoard::BlueCoinBoard(const char* pName) : LayoutActor(pName, 0) {
     mSysInfoWindowBox = 0;
     mBlueCoinPaneRumbler = 0;
     mBackButton = 0;
-    mTable = new JMapInfo();
-    mTable->attach(gBoardDataTable);
+    mTable = MR::tryCreateCsvParser("/SystemData/BlueCoinBoardDataTable.arc", "BlueCoinBoardDataTable.bcsv");
     mBlueCoinCounterFollowPos = TVec2f(0.0f, 0.0f);
     mSelectedButton = -1;
     mBlueCoinNumToDisplay = 0;

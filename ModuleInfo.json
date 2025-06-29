@@ -6,7 +6,7 @@
     "-DBLUECOINSYSTEM",
     "-DBLUECOINBOARD"
   ],
-  "InstallDependancies": ["Syati_ObjectFactories", "Syati_Init", "PTUtils"],
+  "InstallDependancies": ["Syati_ObjectFactories", "Syati_Init", "PTUtils", "CoinBase"],
   "ModuleDependancies": ["PTUtils", "CoinBase_API"],
   "ModuleData" : [
     {
