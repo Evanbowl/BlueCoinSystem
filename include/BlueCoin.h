@@ -11,6 +11,8 @@ class BlueCoin : public CoinBase {
     virtual void control();
     virtual bool vRequestGetCoin();
 
+    void onSwitchAppear();
+
     s32 mID;
     f32 mLaunchVelocity;
     bool mIsCollected;

@@ -215,16 +215,14 @@ void setPauseMenuNerve(PauseMenuExt* pPauseMenu, const Nerve* pNerve) {
 
 kmCall(0x80487BD0, setPauseMenuNerve);
 
-void unkPauseMenuReturnToSelect(PauseMenu*); // sub_80487540
-
 void PauseMenuExt::exeBlueCoinList() {
-
     if (MR::isFirstStep(this))
         mBlueCoinList->appear();
 
     if (MR::isDead(mBlueCoinList))
-        unkPauseMenuReturnToSelect(this);
+        __kAutoMap_80487540(this);
 }
+
 
 namespace NrvPauseMenuExt {
     void NrvPauseMenuExtBlueCoinList::execute(Spine* pSpine) const {

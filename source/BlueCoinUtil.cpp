@@ -7,7 +7,17 @@
 #include "Game/MapObj/FileSelector.h"
 #include "Game/LiveActor/ExtActorActionKeeper.h"
 
-#define BINSIZE 117
+// These can be customized but care needs to be taken if preserving the blue coin save file is preferred.
+#define COLLECTIONCOUNT 256
+#define FLAGSCOUNT 32
+
+
+
+#define FLAGSLOC (COLLECTIONCOUNT*3)/8
+#define SPENTLOC FLAGSLOC+(FLAGSCOUNT*3)/8
+#define TEXTLOC SPENTLOC+6
+
+#define BINSIZE (((COLLECTIONCOUNT+FLAGSCOUNT)/8)*3+9)
 
 void* initializeBlueCoinArrayAndLoadTable() {
     BlueCoinUtil::initBlueCoinArray();
@@ -32,21 +42,19 @@ namespace BlueCoinUtil {
             NANDGetLength(&info, &size);
 
             if (size != BINSIZE) {
+                NANDClose(&info);
                 if (size == 873) {
-                    NANDClose(&info);
                     updateToNewFormat();
                 }
+                else if (MR::testCorePadButtonB(0)) {
+                    saveBlueCoinData();
+                }
                 else {
-                    if (MR::testCorePadButtonB(0)) {
-                        saveBlueCoinData();
-                    }
-                    else {
-                        char errstr[200];
-                        snprintf(errstr, 200, "Blue Coin Read Error\nExpected size of %d\nGot size %d\nNANDRead code: %d\nDelete or hex edit BlueCoinData.bin and try again.\n\nHold B when this error appears to reset BlueCoinData.bin.\n", BINSIZE, size, code);
-                        GXColor bg = { 0, 0, 0, 0 };
-                        GXColor fg = { 255, 255, 255, 255 };
-                        OSFatal(fg, bg, errstr);
-                    }
+                    char errstr[200];
+                    snprintf(errstr, 200, "Blue Coin Read Error\nExpected size of %d\nGot size %d\n\n Max Coins: %d, Max Flags: %d\nNANDRead code: %d\nDelete or hex edit BlueCoinData.bin and try again.\n\nRestart, and hold B when this error appears to attempt an update.\n", BINSIZE, COLLECTIONCOUNT, FLAGSCOUNT, size, code);
+                    GXColor bg = { 0, 0, 0, 0 };
+                    GXColor fg = { 255, 255, 255, 255 };
+                    OSFatal(fg, bg, errstr);
                 }
             }
             else {
@@ -54,11 +62,11 @@ namespace BlueCoinUtil {
                 code = NANDRead(&info, buffer, BINSIZE);
                 
                 memcpy(gBlueCoinData->mCollectionData->mFlags, &buffer[0], getCollectionByteNum());
-                memcpy(gBlueCoinData->mFlags->mFlags, &buffer[96], getFlagsByteNum());
+                memcpy(gBlueCoinData->mFlags->mFlags, &buffer[FLAGSLOC], getFlagsByteNum());
                 
                 for (int i = 0; i < 3; i++) {
-                    memcpy(&gBlueCoinData->mSpentData[i], &buffer[108+(2*i)], 2);
-                    gBlueCoinData->mHasSeenTextBox[i] = buffer[114+i];
+                    memcpy(&gBlueCoinData->mSpentData[i], &buffer[SPENTLOC+(2*i)], 2);
+                    gBlueCoinData->mHasSeenTextBox[i] = buffer[TEXTLOC+i];
                 }
             
                 delete [] buffer;
@@ -78,12 +86,11 @@ namespace BlueCoinUtil {
                 NANDSeek(&info, 0, 0);
                 u8* buffer = new(0x20) u8[BINSIZE];
                 memcpy(&buffer[0], gBlueCoinData->mCollectionData->mFlags, getCollectionByteNum());
-
-                memcpy(&buffer[96], gBlueCoinData->mFlags->mFlags, getFlagsByteNum());
+                memcpy(&buffer[FLAGSLOC], gBlueCoinData->mFlags->mFlags, getFlagsByteNum());
                 
                 for (int i = 0; i < 3; i++) {
-                    memcpy(&buffer[108+(2*i)], &gBlueCoinData->mSpentData[i], 2);
-                    buffer[114+i] = gBlueCoinData->mHasSeenTextBox[i];
+                    memcpy(&buffer[SPENTLOC+(2*i)], &gBlueCoinData->mSpentData[i], 2);
+                    buffer[TEXTLOC+i] = gBlueCoinData->mHasSeenTextBox[i];
                 }
                 
                 code = NANDWrite(&info, buffer, BINSIZE);
@@ -126,9 +133,9 @@ namespace BlueCoinUtil {
         }
 
         NANDClose(&info);
-        int code2 = NANDDelete("BlueCoinData.bin");
+        NANDDelete("BlueCoinData.bin");
         delete buffer;
-        OSReport("BlueCoinData.bin update completed! Saving...");
+        OSReport("BlueCoinData.bin has been updated to the default sizing. Saving...\n");
         saveBlueCoinData();
     }
 
@@ -141,30 +148,32 @@ namespace BlueCoinUtil {
     }
 
     void printBlueCoinSaveFileInfo() {
-        char flagstr[3][36];
+        const int flagsStrSize = FLAGSCOUNT+(FLAGSCOUNT/8);
+        char flagstr[3][flagsStrSize];
         s32 numcoins[3];
 
         for (s32 i = 0; i < 3; i++) {
-            flagstr[i][35] = 0;
+            flagstr[i][flagsStrSize-1] = 0;
             numcoins[i] = 0;
             s32 flagidx = 0;
             
-            for (s32 j = 0; j < 35; j++) {
+
+            for (s32 j = 0; j < flagsStrSize-1; j++) {
                 if (j % 9 == 8)
                     flagstr[i][j] = 0x20;
                 else {
-                    flagstr[i][j] = gBlueCoinData->mFlags->isOn((32*i)+flagidx) ? 0x31 : 0x30;
+                    flagstr[i][j] = gBlueCoinData->mFlags->isOn((FLAGSCOUNT*i)+flagidx) ? 0x31 : 0x30;
                     flagidx++;
                 }
             }
 
-            for (s32 j = 0; j < 256; j++) {
-                if (gBlueCoinData->mCollectionData->isOn((256*i)+j))
+            for (s32 j = 0; j < COLLECTIONCOUNT; j++) {
+                if (gBlueCoinData->mCollectionData->isOn((COLLECTIONCOUNT*i)+j))
                     numcoins[i]++;
             }
         }
 
-        OSReport("Blue Coin save file info\nc0: %d, c1: %d, c2: %d\nf0: %s\nf1: %s\nf2: %s\ns0: %d, s1: %d, s2: %d\nm0: %s, m1: %s, m2: %s\n", 
+        OSReport("Blue Coin save file info\nc0: %d, c1: %d, c2: %d\nf0: %s\nf1: %s\nf2: %s\ns0: %d, s1: %d, s2: %d\nm0: %s, m1: %s, m2: %s\nMax Coin Count: %d, Max Flag Count: %d\n", 
         numcoins[0], 
         numcoins[1], 
         numcoins[2],
@@ -176,7 +185,9 @@ namespace BlueCoinUtil {
         gBlueCoinData->mSpentData[2],
         gBlueCoinData->mHasSeenTextBox[0] ? "Yes" : "No",
         gBlueCoinData->mHasSeenTextBox[1] ? "Yes" : "No",
-        gBlueCoinData->mHasSeenTextBox[2] ? "Yes" : "No"
+        gBlueCoinData->mHasSeenTextBox[2] ? "Yes" : "No",
+        COLLECTIONCOUNT,
+        FLAGSCOUNT
         );
     }
 
@@ -193,8 +204,8 @@ namespace BlueCoinUtil {
 
     void initBlueCoinArray() {
         gBlueCoinData = new BlueCoinData;
-        gBlueCoinData->mCollectionData = new MR::BitArray(256*3);
-        gBlueCoinData->mFlags = new MR::BitArray(32*3);
+        gBlueCoinData->mCollectionData = new MR::BitArray(COLLECTIONCOUNT*3);
+        gBlueCoinData->mFlags = new MR::BitArray(FLAGSCOUNT*3);
         for (int i = 0; i < 3; i++) {
             gBlueCoinData->mSpentData[i] = 0;
             gBlueCoinData->mHasSeenTextBox[i] = 0;
@@ -207,15 +218,15 @@ namespace BlueCoinUtil {
     }
 
     void setBlueCoinGotCurrentFile(u16 id) {
-        gBlueCoinData->mCollectionData->set((256*getCurrentFileNum())+id, true);
+        gBlueCoinData->mCollectionData->set((COLLECTIONCOUNT*getCurrentFileNum())+id, true);
     }
 
     bool isBlueCoinGot(u8 file, u16 id) {
-        return gBlueCoinData->mCollectionData->isOn((256*file)+id);
+        return gBlueCoinData->mCollectionData->isOn((COLLECTIONCOUNT*file)+id);
     }
     
     bool isBlueCoinGotCurrentFile(u16 id) {
-        return gBlueCoinData->mCollectionData->isOn((256*getCurrentFileNum())+id);
+        return gBlueCoinData->mCollectionData->isOn((COLLECTIONCOUNT*getCurrentFileNum())+id);
     }
 
     bool hasSeenBlueCoinTextBoxCurrentFile() {
@@ -227,17 +238,17 @@ namespace BlueCoinUtil {
     }
 
     void setOnBlueCoinFlagCurrentFile(u8 flag) {
-        gBlueCoinData->mFlags->set((32*getCurrentFileNum())+flag, true);
+        gBlueCoinData->mFlags->set((FLAGSCOUNT*getCurrentFileNum())+flag, true);
     }
 
     bool isOnBlueCoinFlagCurrentFile(u8 flag) {
-        return gBlueCoinData->mFlags->isOn((32*getCurrentFileNum())+flag);
+        return gBlueCoinData->mFlags->isOn((FLAGSCOUNT*getCurrentFileNum())+flag);
     }
 
     void resetAllBlueCoin(u8 file) {
         int collectionCount = gBlueCoinData->mCollectionData->mFlagCount;
-        MR::zeroMemory(&gBlueCoinData->mCollectionData->mFlags[32*file], getCollectionByteNum()/3);
-        MR::zeroMemory(&gBlueCoinData->mFlags->mFlags[32*file], getFlagsByteNum()/3);
+        MR::zeroMemory(&gBlueCoinData->mCollectionData->mFlags[FLAGSCOUNT*file], getCollectionByteNum()/3);
+        MR::zeroMemory(&gBlueCoinData->mFlags->mFlags[FLAGSCOUNT*file], getFlagsByteNum()/3);
         gBlueCoinData->mSpentData[file] = 0;
         gBlueCoinData->mHasSeenTextBox[file] = 0;
     }
@@ -275,8 +286,8 @@ namespace BlueCoinUtil {
 
     s32 getTotalBlueCoinNum(u8 file, bool ignoreSpent) {
         s32 total = 0;
-        for (s32 i = 0; i < 256; i++) {
-            if (gBlueCoinData->mCollectionData->isOn((256*file)+i))
+        for (s32 i = 0; i < COLLECTIONCOUNT; i++) {
+            if (gBlueCoinData->mCollectionData->isOn((COLLECTIONCOUNT*file)+i))
                 total++;
         }
 
@@ -441,9 +452,3 @@ void onTitleScreenLoad(FileSelector* pFileSelector) {
 }
 
 kmCall(0x8024F358, onTitleScreenLoad); // bl saveBlueCoinDataOnGameSave
-
-GameSequenceInGame* getGameSequenceInGameTest() {
-    OSReport("Yes\n"); 
-    return GameSequenceFunction::getGameSequenceInGame();
-}
-kmCall(0x804D6644, getGameSequenceInGameTest);

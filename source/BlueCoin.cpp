@@ -45,6 +45,12 @@ void BlueCoin::init(const JMapInfoIter& rIter) {
     
     MR::initSensors(this, "BlueCoin", 0);
 
+    if (MR::isValidSwitchAppear(this)) {
+        MR::listenStageSwitchOnAppear(this, MR::Functor(this, &onSwitchAppear));
+        MR::invalidateHitSensors(this);
+    }
+
+
     if (MR::isValidSwitchB(this)) {
         requestHide();
         MR::invalidateHitSensors(this);
@@ -61,6 +67,10 @@ void BlueCoin::control() {
 
         mLifeTime = 0x7FFFFFFF;
     }
+}
+
+void BlueCoin::onSwitchAppear() {
+    MR::validateHitSensors(this);
 }
 
 bool BlueCoin::vRequestGetCoin() {

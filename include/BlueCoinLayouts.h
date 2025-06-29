@@ -27,3 +27,8 @@ const wchar_t counterPictureFonts2[] = {
 
 
 void PauseMenuIDListControls(PauseMenu* pPauseMenu);
+
+extern "C" {
+    // unkPauseMenuReturnToSelect__FP9PauseMenu
+    void __kAutoMap_80487540(PauseMenu*); // sub_80487540
+}

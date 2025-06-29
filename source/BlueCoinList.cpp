@@ -182,7 +182,8 @@ void BlueCoinList::exeWait() {
         if (!mArrowLeft->isWait())
             mArrowLeft->forceToWait();
     }
-    if (unkBackButtonIsSelected(mBackButton)) {
+    
+    if (__kAutoMap_8045E9D0(mBackButton)) {
         if (mBackButton->isHidden()) {
             setNerve(&NrvBlueCoinList::NrvClose::sInstance);
         }
@@ -199,13 +200,13 @@ void BlueCoinList::exeWait() {
         mPageDirection = -1;
 
         if (!mArrowLeft->isDecidedWait())
-            unkButtonPaneControllerForceSelect(mArrowLeft);
+            __kAutoMap_80461860(mArrowLeft);
     }
     if (MR::testCorePadTriggerRight(0) || MR::testSubPadStickTriggerRight(0) || mArrowRight->trySelect()) {
         mPageDirection = +1;
 
         if (!mArrowRight->isDecidedWait())
-            unkButtonPaneControllerForceSelect(mArrowRight);
+            __kAutoMap_80461860(mArrowRight);
     }
 
     if (mPageDirection != 0) {
