@@ -25,8 +25,8 @@ void initPauseMenuBlueCoin(PauseMenuExt* pPauseMenu) {
 kmCall(0x80486D60+REGIONOFF, initPauseMenuBlueCoin); // bl initPauseMenuBlueCoin
 
 void setPauseMenuBlueCoinStageCount(PauseMenuExt* pPauseMenu) {
-    s32 rangeCollected = BlueCoinUtil::getBlueCoinRangeData(0, true);
-    s32 rangeTotal = BlueCoinUtil::getBlueCoinRangeData(0, false);
+    s32 rangeCollected = BlueCoinUtil::calcBlueCoinTotalInRange(0, true);
+    s32 rangeTotal = BlueCoinUtil::calcBlueCoinTotalInRange(0, false);
 
     MR::setTextBoxArgNumberRecursive(pPauseMenu, "ShaBlueCoinTotal", BlueCoinUtil::getTotalBlueCoinNumCurrentFile(false), 0);
     MR::setTextBoxFormatRecursive(pPauseMenu, "ShaCoinListWin", L"");
@@ -156,7 +156,7 @@ void PauseMenuIDListControls(PauseMenuExt* pPauseMenu) {
         MR::startPaneAnimAndSetFrameAndStop(pPauseMenu, "ListButton", "ChangeList", frame, 1);
         
         
-        if (BlueCoinUtil::getBlueCoinRangeData(MR::getCurrentStageName(), false) != -1 && !stagecheck) {
+        if (BlueCoinUtil::calcBlueCoinTotalInRange(MR::getCurrentStageName(), false) != -1 && !stagecheck) {
             MR::startPaneAnimAndSetFrameAndStop(pPauseMenu, "StageInfo", "Change", frame, 1);
             MR::addPictureFontCode(gStarIconIDList, pPauseMenu->mDisplayMode > 0 ? 0xC2 : 0xC1);
             MR::setTextBoxFormatRecursive(pPauseMenu, "TxtCoinPage", gStarIconIDList);
@@ -197,7 +197,7 @@ kmWrite32(0x80487714+REGIONOFF, 0x7F63DB78); // mr r3, r27 (PauseMenuExt* into r
 kmCall(0x80487720+REGIONOFF, PauseMenuIsNewButtonPointingTrigger);
 
 void PauseMenuMoveButtonForBlueCoin(PauseMenuExt* pPauseMenu, const char* pStr1, const char* pStr2, f32 frame, u32 u) {
-    if (BlueCoinUtil::getBlueCoinRangeData(MR::getCurrentStageName(), false) != -1) {
+    if (BlueCoinUtil::calcBlueCoinTotalInRange(MR::getCurrentStageName(), false) != -1) {
         frame = 2.0f;
     }
     MR::startPaneAnimAndSetFrameAndStop(pPauseMenu, pStr1, pStr2, frame, u);
@@ -261,7 +261,7 @@ kmCall(0x804A952C, initGalaxyInfoBlueCoinCount); // bl initGalaxyInfoBlueCoinCou
 void setGalaxyInfoBlueCoinCount(LayoutActor* actor, const char* pGalaxyName, const wchar_t* pWStr) {
     MR::setTextBoxMessageRecursive(actor, "StarIcon", pWStr);
 
-    s32 rangeNum = BlueCoinUtil::getBlueCoinRangeData(pGalaxyName, true);
+    s32 rangeNum = BlueCoinUtil::calcBlueCoinTotalInRange(pGalaxyName, true);
     MR::hidePaneRecursive(actor, "BlueCoin");
 
     if (rangeNum != -1) {

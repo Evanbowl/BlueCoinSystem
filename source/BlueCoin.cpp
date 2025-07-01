@@ -18,6 +18,7 @@ void BlueCoin::init(const JMapInfoIter& rIter) {
     mCoinInfo.mUseReadSwitchB = false;
     mCoinInfo.mIgnoreSensorScaling = true;
     mCoinInfo.mInitFunction = false;
+    
     const char* name = "BlueCoin";
     
     if (MR::isValidInfo(rIter)) {
@@ -26,37 +27,30 @@ void BlueCoin::init(const JMapInfoIter& rIter) {
     }
     
     if (BlueCoinUtil::isBlueCoinGotCurrentFile(mID))
-        name = "BlueCoinClear";
+    name = "BlueCoinClear";
     
     strcpy(mCoinInfo.mMirrorActorName, name);
     if (MR::isValidInfo(rIter)) {
         MR::processInitFunction(this, rIter, name, false);
         MR::initSwitches(this, rIter, "BlueCoin", 0);
     }
-
     else {
         MR::processInitFunction(this, name, false);
         MR::initShadowVolumeSphere(this, 50.0f);
         MR::setShadowDropPositionPtr(this, 0, &mShadowDropPos);
         MR::setShadowDropLength(this, 0, 1000.0f);
     }
-
-    CoinBase::init(rIter);
-    
     MR::initSensors(this, "BlueCoin", 0);
-
+    CoinBase::init(rIter);  
+    
+    
     if (MR::isValidSwitchAppear(this)) {
         MR::listenStageSwitchOnAppear(this, MR::Functor(this, &onSwitchAppear));
         MR::invalidateHitSensors(this);
     }
 
-
-    if (MR::isValidSwitchB(this)) {
+    if (MR::isValidSwitchB(this))
         requestHide();
-        MR::invalidateHitSensors(this);
-    }
-    else
-        makeActorAppeared();
 }
 
 
@@ -70,6 +64,7 @@ void BlueCoin::control() {
 }
 
 void BlueCoin::onSwitchAppear() {
+    OSReport("Yes\n");
     MR::validateHitSensors(this);
 }
 
@@ -96,3 +91,11 @@ bool BlueCoin::vRequestGetCoin() {
     noticeGetCoin();
     return 1;
 }
+
+
+//void CoinTest(Coin* pCoin, s32 time) {
+//    OSReport("Time %d\n", time);
+//    pCoin->setCannotTime(time);
+//}
+//
+//kmCall(0x8028D060, CoinTest);

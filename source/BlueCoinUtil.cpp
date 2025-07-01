@@ -236,7 +236,7 @@ namespace BlueCoinUtil {
         return gBlueCoinData->mFlags->isOn((FLAGSCOUNT*getCurrentFileNum())+flag);
     }
 
-    void resetAllBlueCoin(u8 file) {
+    void resetAllBlueCoinTargetFile(u8 file) {
         int collectionCount = gBlueCoinData->mCollectionData->mFlagCount;
         MR::zeroMemory(&gBlueCoinData->mCollectionData->mFlags[FLAGSCOUNT*file], getCollectionByteNum()/3);
         MR::zeroMemory(&gBlueCoinData->mFlags->mFlags[FLAGSCOUNT*file], getFlagsByteNum()/3);
@@ -292,7 +292,34 @@ namespace BlueCoinUtil {
         return getTotalBlueCoinNum(getCurrentFileNum(), ignoreSpent);
     }
 
-    s32 getBlueCoinRangeData(const char* pStageName, bool collectedCoinsOnly) {
+    s32 getBlueCoinRange(const char* pStageName, bool minOrMax) {
+        JMapInfo table = JMapInfo();
+        table.attach(gBlueCoinIDRangeTable);
+
+        const char* tableStageName;
+        s32 targetLine = -1;
+
+        if (!pStageName)
+            pStageName = MR::getCurrentStageName();
+
+        for (s32 i = 0; i < MR::getCsvDataElementNum(&table); i++) {
+            MR::getCsvDataStr(&tableStageName, &table, "StageName", i);
+
+            if (MR::isEqualString(pStageName, tableStageName)) {
+                targetLine = i;
+                break;
+            }
+        }
+
+        if (targetLine > -1) {
+            s32 val = 0;
+            MR::getCsvDataS32(&val, &table, minOrMax ? "BlueCoinRangeMax" : "BlueCoinRangeMin", targetLine);
+            return val;
+        }
+        return -1;
+    }
+
+    s32 calcBlueCoinTotalInRange(const char* pStageName, bool collectedCoinsOnly) {
         JMapInfo table = JMapInfo();
         table.attach(gBlueCoinIDRangeTable);
 
@@ -333,33 +360,6 @@ namespace BlueCoinUtil {
         
         return -1;
     }
-    
-    s32 getBlueCoinRange(const char* pStageName, bool minOrMax) {
-        JMapInfo table = JMapInfo();
-        table.attach(gBlueCoinIDRangeTable);
-
-        const char* tableStageName;
-        s32 targetLine = -1;
-
-        if (!pStageName)
-            pStageName = MR::getCurrentStageName();
-
-        for (s32 i = 0; i < MR::getCsvDataElementNum(&table); i++) {
-            MR::getCsvDataStr(&tableStageName, &table, "StageName", i);
-
-            if (MR::isEqualString(pStageName, tableStageName)) {
-                targetLine = i;
-                break;
-            }
-        }
-
-        if (targetLine > -1) {
-            s32 val = 0;
-            MR::getCsvDataS32(&val, &table, minOrMax ? "BlueCoinRangeMax" : "BlueCoinRangeMin", targetLine);
-            return val;
-        }
-        return -1;
-    }
 
     JMapInfo* getBlueCoinIDRangeTable() {
         JMapInfo* table = new JMapInfo();
@@ -393,7 +393,7 @@ namespace BlueCoinUtil {
 
             MR::startSystemSE("SE_SY_PURPLE_COIN_APPEAR", -1, -1);
 
-            pKeeperActor->appearMove(rPosition, coinVelocity, 0x7FFFFFFF, 60);
+            pKeeperActor->appearMove(rPosition, coinVelocity, 0x7FFFFFFF, -1);
             return true;
         }
 
@@ -411,17 +411,12 @@ namespace BlueCoinUtil {
     }
 }
 
-// Blue coin binary management
-
-// Delete all blue coins in a save file.
 void resetAllBlueCoinOnDeleteFile(SaveDataHandleSequence* pSeq, UserFile* pFile, int fileID) {
-    pSeq->restoreUserFileConfigData(pFile, fileID); // Restore original call
-    BlueCoinUtil::resetAllBlueCoin(fileID-1);
+    pSeq->restoreUserFileConfigData(pFile, fileID);
+    BlueCoinUtil::resetAllBlueCoinTargetFile(fileID-1);
 }
 
 kmCall(0x804D9BF8, resetAllBlueCoinOnDeleteFile); // bl resetAllBlueCoinOnDeleteFile
-
-// Save gBlueCoinData->collectionData to file.
 
 void saveBlueCoinDataOnGameSave(const char* pName) {
     MR::startSystemSE(pName, -1, -1);
@@ -434,10 +429,8 @@ void saveBlueCoinDataOnGameSave(const char* pName) {
     kmCall(0x804DAFD0, saveBlueCoinDataOnGameSave); // bl saveBlueCoinDataOnGameSave
 #endif
 
-// Read blue coin binary on title screen load.
 void onTitleScreenLoad(FileSelector* pFileSelector) {
-    pFileSelector->initHitSensor(1); // Restore original call
-
+    pFileSelector->initHitSensor(1);
     BlueCoinUtil::clearBlueCoinData();
     BlueCoinUtil::loadBlueCoinData();
 }

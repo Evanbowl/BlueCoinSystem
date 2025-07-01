@@ -61,7 +61,7 @@ void BlueCoinList::init(const JMapInfoIter& rIter) {
         if (pageNum > 0 && slotNum > 0) {
             const char* pStageName;
             MR::getCsvDataStrOrNULL(&pStageName, mRangeTable, "StageName", i);
-            mBlueCoinTotalCount = mBlueCoinTotalCount + BlueCoinUtil::getBlueCoinRangeData(pStageName, false);
+            mBlueCoinTotalCount = mBlueCoinTotalCount + BlueCoinUtil::calcBlueCoinTotalInRange(pStageName, false);
 
             if (MR::isEqualStageName(pStageName)) {
                 mDefaultPage = pageNum;
@@ -296,10 +296,10 @@ void BlueCoinList::populateListEntries() {
                     MR::copyString(entry->pStageName, pName, 48);
                     entry->rangeMax = BlueCoinUtil::getBlueCoinRange(pName, true);
                     entry->rangeMin = BlueCoinUtil::getBlueCoinRange(pName, false);
-                    entry->coinNum = BlueCoinUtil::getBlueCoinRangeData(pName, true);
+                    entry->coinNum = BlueCoinUtil::calcBlueCoinTotalInRange(pName, true);
                     entry->isBlankSlot = false;
-                    mTotalCoinsInPage = mTotalCoinsInPage + BlueCoinUtil::getBlueCoinRangeData(pName, false);
-                    mTotalCollectedCoinsInPage = mTotalCollectedCoinsInPage + BlueCoinUtil::getBlueCoinRangeData(pName, true);
+                    mTotalCoinsInPage += BlueCoinUtil::calcBlueCoinTotalInRange(pName, false);
+                    mTotalCollectedCoinsInPage += BlueCoinUtil::calcBlueCoinTotalInRange(pName, true);
                     
                     if (MR::isEqualStageName(pName) || MR::getPowerStarNumOwnedInStage(pName) || entry->coinNum > 0) {
                         entry->state = STATE_GALAXY_OPENED;
