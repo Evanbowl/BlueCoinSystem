@@ -20,18 +20,23 @@ void initPauseMenuBlueCoin(PauseMenuExt* pPauseMenu) {
     BlueCoinList* pBlueCoinList = new BlueCoinList("BlueCoinList");
     pBlueCoinList->initWithoutIter();
     pPauseMenu->mBlueCoinList = pBlueCoinList;
+
+    pPauseMenu->mIsExistBlueCoins = false;
+
+    if (BlueCoinUtil::getBlueCoinRange(0, false) > -1)
+        pPauseMenu->mIsExistBlueCoins = true;
 }
 
 kmCall(0x80486D60+REGIONOFF, initPauseMenuBlueCoin); // bl initPauseMenuBlueCoin
 
 void setPauseMenuBlueCoinStageCount(PauseMenuExt* pPauseMenu) {
-    s32 rangeCollected = BlueCoinUtil::calcBlueCoinTotalInRange(0, true);
-    s32 rangeTotal = BlueCoinUtil::calcBlueCoinTotalInRange(0, false);
-
     MR::setTextBoxArgNumberRecursive(pPauseMenu, "ShaBlueCoinTotal", BlueCoinUtil::getTotalBlueCoinNumCurrentFile(false), 0);
     MR::setTextBoxFormatRecursive(pPauseMenu, "ShaCoinListWin", L"");
     
-    if (rangeTotal > -1) {
+    if (pPauseMenu->mIsExistBlueCoins) {
+        s32 rangeCollected = BlueCoinUtil::calcBlueCoinTotalInRange(0, true);
+        s32 rangeTotal = BlueCoinUtil::calcBlueCoinTotalInRange(0, false);
+
         wchar_t str[5];
         pt::str2wcsfullwidth(str, rangeTotal);
         MR::setTextBoxFormatRecursive(pPauseMenu, "ShaBlueCoinNum", str);
@@ -61,12 +66,12 @@ kmWrite32(0x80486EAC, 0x7C651B78); // mr r5, r3
 
 s32 setUpBlueCoinInfoOnAppear(PauseMenuExt* pPauseMenu) {
     setPauseMenuBlueCoinStageCount(pPauseMenu);
-    s32 rangemin = BlueCoinUtil::getBlueCoinRange(0, false);
     MR::startPaneAnimAndSetFrameAndStop(pPauseMenu, "ListButton", "ChangeList", 0.0f, 1);
     MR::setTextBoxGameMessageRecursive(pPauseMenu, "StarList", "PauseMenu_StarList");
     pPauseMenu->mDisplayMode = 0;  
-
-    if (rangemin != -1) {
+    
+    if (pPauseMenu->mIsExistBlueCoins) {
+        s32 rangemin = BlueCoinUtil::getBlueCoinRange(0, false);
         wchar_t gIDListStr[32];
         wchar_t gCompleteIcon[2];
         wchar_t gStarIcon[2];
@@ -84,7 +89,6 @@ s32 setUpBlueCoinInfoOnAppear(PauseMenuExt* pPauseMenu) {
         MR::showPaneRecursive(pPauseMenu, "BlueCoinAmounts");
         MR::showPaneRecursive(pPauseMenu, "CoinListIcons");
         MR::hidePane(pPauseMenu, "TxtCoinComplete");
-
 
         if (stageCheck) {
             MR::showPaneRecursive(pPauseMenu, "StageInfo");
@@ -155,14 +159,23 @@ void PauseMenuIDListControls(PauseMenuExt* pPauseMenu) {
         f32 frame = (f32)pPauseMenu->mDisplayMode;
         MR::startPaneAnimAndSetFrameAndStop(pPauseMenu, "ListButton", "ChangeList", frame, 1);
         
-        
-        if (BlueCoinUtil::calcBlueCoinTotalInRange(MR::getCurrentStageName(), false) != -1 && !stagecheck) {
+        if (pPauseMenu->mIsExistBlueCoins && !stagecheck) {
             MR::startPaneAnimAndSetFrameAndStop(pPauseMenu, "StageInfo", "Change", frame, 1);
             MR::addPictureFontCode(gStarIconIDList, pPauseMenu->mDisplayMode > 0 ? 0xC2 : 0xC1);
             MR::setTextBoxFormatRecursive(pPauseMenu, "TxtCoinPage", gStarIconIDList);
         }
     }
 }
+
+bool PauseMenuIsStageBlueCoin(PauseMenuExt* pPauseMenu, int unused, const char* pStr) {
+    MR::startPaneAnim(pPauseMenu, "StageInfo", pStr, 0);
+
+    return pPauseMenu->mIsExistBlueCoins;
+}
+
+kmCall(0x80487424+REGIONOFF, PauseMenuIsStageBlueCoin);
+kmWrite32(0x80487428+REGIONOFF, 0x2C030001);
+kmWrite32(0x8048742C+REGIONOFF, 0x4182007C);
 
 #ifndef PAUSEMENUNEWBUTTON
 PauseMenuExt* createPauseMenuExt() {

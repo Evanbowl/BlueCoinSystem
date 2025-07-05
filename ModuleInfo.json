@@ -4,7 +4,7 @@
   "Description": "PTD: Full Blue Coin System",
   "CompilerFlags" : [
     "-DBLUECOINSYSTEM",
-    "-DBLUECOINBOARD"
+    "-DBLUECOINBOARD" 
   ],
   "InstallDependancies": ["Syati_ObjectFactories", "Syati_Init", "PTUtils", "CoinBase"],
   "ModuleDependancies": ["PTUtils", "CoinBase_API"],

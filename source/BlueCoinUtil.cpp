@@ -124,7 +124,7 @@ namespace BlueCoinUtil {
 
         NANDClose(&info);
         NANDDelete("BlueCoinData.bin");
-        delete buffer;
+        delete [] buffer;
         OSReport("BlueCoinData.bin has been updated to the default sizing. Saving...\n");
         saveBlueCoinData();
     }

@@ -27,9 +27,10 @@ void BlueCoin::init(const JMapInfoIter& rIter) {
     }
     
     if (BlueCoinUtil::isBlueCoinGotCurrentFile(mID))
-    name = "BlueCoinClear";
+        name = "BlueCoinClear";
     
     strcpy(mCoinInfo.mMirrorActorName, name);
+
     if (MR::isValidInfo(rIter)) {
         MR::processInitFunction(this, rIter, name, false);
         MR::initSwitches(this, rIter, "BlueCoin", 0);
@@ -91,11 +92,3 @@ bool BlueCoin::vRequestGetCoin() {
     noticeGetCoin();
     return 1;
 }
-
-
-//void CoinTest(Coin* pCoin, s32 time) {
-//    OSReport("Time %d\n", time);
-//    pCoin->setCannotTime(time);
-//}
-//
-//kmCall(0x8028D060, CoinTest);

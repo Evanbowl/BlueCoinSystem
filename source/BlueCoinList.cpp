@@ -384,8 +384,7 @@ void BlueCoinList::updateTextBoxes() {
     MR::setTextBoxFormatRecursive(this, "ShaCoinMaxP", bufProgressP);
 }
 
-void BlueCoinList::updateBlueCoinTextPane() {
-    
+void BlueCoinList::updateBlueCoinTextPane() {    
     if (mCursorPosition != 7) {
         wchar_t IDListStr[32];
         ListEntry* entry = getEntry(mCursorPosition);
