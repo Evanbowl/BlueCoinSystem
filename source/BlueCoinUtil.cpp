@@ -10,7 +10,7 @@
 
 void* initializeBlueCoinArrayAndLoadTable() {
     BlueCoinUtil::initBlueCoinArray();
-    return pt::loadArcAndFile("/SystemData/BlueCoinIDRangeTable.arc", "/BlueCoinIDRangeTable.bcsv", 0);
+    return pt::loadArcAndFile("/SystemData/BlueCoinIDRangeTable.arc", "BlueCoinIDRangeTable.bcsv", 0);
 }
 
 BlueCoinData* gBlueCoinData;
@@ -76,7 +76,7 @@ namespace BlueCoinUtil {
                 u8* buffer = new(0x20) u8[BINSIZE];
                 memcpy(&buffer[0], gBlueCoinData->mCollectionData->mFlags, getCollectionByteNum());
                 memcpy(&buffer[FLAGSLOC], gBlueCoinData->mFlags->mFlags, getFlagsByteNum());
-                
+
                 for (int i = 0; i < 3; i++) {
                     memcpy(&buffer[SPENTLOC+(2*i)], &gBlueCoinData->mSpentData[i], 2);
                     buffer[TEXTLOC+i] = gBlueCoinData->mHasSeenTextBox[i];
@@ -228,14 +228,14 @@ namespace BlueCoinUtil {
         gBlueCoinData->mHasSeenTextBox[getCurrentFileNum()] = true;
     }
 
-    void setOnBlueCoinFlagCurrentFile(u8 flag) {
+    void setOnBlueCoinFlagCurrentFile(u16 flag) {
         gBlueCoinData->mFlags->set((FLAGSCOUNT*getCurrentFileNum())+flag, true);
     }
 
-    bool isOnBlueCoinFlagCurrentFile(u8 flag) {
+    bool isOnBlueCoinFlagCurrentFile(u16 flag) {
         return gBlueCoinData->mFlags->isOn((FLAGSCOUNT*getCurrentFileNum())+flag);
     }
-
+    
     void resetAllBlueCoinTargetFile(u8 file) {
         int collectionCount = gBlueCoinData->mCollectionData->mFlagCount;
         MR::zeroMemory(&gBlueCoinData->mCollectionData->mFlags[FLAGSCOUNT*file], getCollectionByteNum()/3);
@@ -267,15 +267,15 @@ namespace BlueCoinUtil {
             gBlueCoinData->mSpentData[getCurrentFileNum()] += numcoin;
     }
 
-    s32 getSpentBlueCoinNum(u8 file) {
+    u16 getSpentBlueCoinNum(u8 file) {
         return gBlueCoinData->mSpentData[file];
     }
 
-    s32 getSpentBlueCoinNumCurrentFile() {
+    u16 getSpentBlueCoinNumCurrentFile() {
         return gBlueCoinData->mSpentData[getCurrentFileNum()];
     }
 
-    s32 getTotalBlueCoinNum(u8 file, bool ignoreSpent) {
+    u16 getTotalBlueCoinNum(u8 file, bool ignoreSpent) {
         s32 total = 0;
         for (s32 i = 0; i < COLLECTIONCOUNT; i++) {
             if (gBlueCoinData->mCollectionData->isOn((COLLECTIONCOUNT*file)+i))
@@ -288,7 +288,7 @@ namespace BlueCoinUtil {
             return total;
     }
 
-    s32 getTotalBlueCoinNumCurrentFile(bool ignoreSpent) {
+    u16 getTotalBlueCoinNumCurrentFile(bool ignoreSpent) {
         return getTotalBlueCoinNum(getCurrentFileNum(), ignoreSpent);
     }
 
@@ -436,3 +436,31 @@ void onTitleScreenLoad(FileSelector* pFileSelector) {
 }
 
 kmCall(0x8024F358, onTitleScreenLoad); // bl saveBlueCoinDataOnGameSave
+
+namespace BlueCoinReplaceTag {
+    u32 appendBlueCoinString(wchar_t* pStr, u32 num) {
+        wchar_t wbuf[8];
+        swprintf(wbuf, 16, L"%d", num);
+        size_t len = wcslen(wbuf);
+        MR::copyString(pStr, wbuf, len);
+        return len;
+    }
+
+    inline u16 getReplaceParam(const MessageEditorMessageTag& rTag) {
+        return *((u16*)rTag._0+1);
+    }
+
+    u32 getTotalBlueCoinNumCurrentFileForMsg(wchar_t* pStr, const MessageEditorMessageTag& rTag) {
+        u16 mParam2 = getReplaceParam(rTag);
+        return appendBlueCoinString(pStr, BlueCoinUtil::getTotalBlueCoinNumCurrentFile(((bool)mParam2)));
+    };
+
+    u32 calcBlueCoinTotalInRangeForMsg(wchar_t* pStr, const MessageEditorMessageTag& rTag) {
+        u16 mParam2 = getReplaceParam(rTag);
+        return appendBlueCoinString(pStr, BlueCoinUtil::calcBlueCoinTotalInRange(0, !((bool)mParam2)));
+    };
+
+    u32 getSpentBlueCoinNumCurrentFileForMsg(wchar_t* pStr, const MessageEditorMessageTag& rTag) {
+        return appendBlueCoinString(pStr, BlueCoinUtil::getSpentBlueCoinNumCurrentFile());
+    }
+}

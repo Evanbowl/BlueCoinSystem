@@ -188,6 +188,10 @@ CounterLayoutControllerExt::CounterLayoutControllerExt() : CounterLayoutControll
     mBlueCoinCounter = 0;
 }
 
+CounterLayoutControllerExt::~CounterLayoutControllerExt() {
+    
+}
+
 CounterLayoutControllerExt* createCounterLayoutControllerExt() {
     return new CounterLayoutControllerExt();
 }

@@ -54,8 +54,8 @@ namespace BlueCoinUtil {
     bool isBlueCoinGot(u8 file, u16 id);
     bool isBlueCoinGotCurrentFile(u16 id);
    
-    void setOnBlueCoinFlagCurrentFile(u8 flag);
-    bool isOnBlueCoinFlagCurrentFile(u8 flag);
+    void setOnBlueCoinFlagCurrentFile(u16 flag);
+    bool isOnBlueCoinFlagCurrentFile(u16 flag);
 
     bool hasSeenBlueCoinTextBoxCurrentFile();
     void setSeenBlueCoinTextBoxCurrentFile();
@@ -67,11 +67,11 @@ namespace BlueCoinUtil {
     void showTextBox();  
 
     void spendBlueCoinCurrentFile(u16 numcoin);
-    s32 getSpentBlueCoinNum(u8 file);
-    s32 getSpentBlueCoinNumCurrentFile();
+    u16 getSpentBlueCoinNum(u8 file);
+    u16 getSpentBlueCoinNumCurrentFile();
 
-    s32 getTotalBlueCoinNum(u8 file, bool ignoreSpent);
-    s32 getTotalBlueCoinNumCurrentFile(bool ignoreSpent);
+    u16 getTotalBlueCoinNum(u8 file, bool ignoreSpent);
+    u16 getTotalBlueCoinNumCurrentFile(bool ignoreSpent);
     
     s32 getBlueCoinRange(const char* pStageName, bool minOrMax);
     s32 calcBlueCoinTotalInRange(const char* pStageName, bool collectedCoinsOnly);
@@ -83,4 +83,14 @@ namespace BlueCoinUtil {
     bool isValidBlueCoinActionKeeper(LiveActor* pSourceActor);
 
     NameObj* createBlueCoin(const char* pName);
+
+
+};
+
+namespace BlueCoinReplaceTag {
+    u32 appendBlueCoinString(wchar_t* pStr, u32 num);
+    inline u16 getReplaceParam(const MessageEditorMessageTag& rTag);
+    u32 getTotalBlueCoinNumCurrentFileForMsg(wchar_t* pStr, const MessageEditorMessageTag& rTag);
+    u32 calcBlueCoinTotalInRangeForMsg(wchar_t* pStr, const MessageEditorMessageTag& rTag);
+    u32 getSpentBlueCoinNumCurrentFileForMsg(wchar_t* pStr, const MessageEditorMessageTag& rTag);
 };

@@ -12,6 +12,7 @@ public:
 
     void exeAppear();
     void exeChange();
+    void exeChangeFail();
     void exeWait();
     void exeClose();
 
@@ -61,6 +62,7 @@ namespace NrvBlueCoinList {
     NERVE(NrvInit);
     NERVE(NrvAppear);
     NERVE(NrvChange);
+    NERVE(NrvChangeFail);
     NERVE(NrvWait);
     NERVE(NrvClose);
 };

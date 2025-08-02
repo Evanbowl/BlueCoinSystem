@@ -108,6 +108,17 @@ void BlueCoinList::exeAppear() {
 
         MR::setTextBoxGameMessageRecursive(this, "ShaTotals", "BlueCoinList_Totals");
 
+        
+        if (mCurrentPage == 1)
+            MR::hidePaneRecursive(this, "Left");
+        else 
+            MR::showPaneRecursive(this, "Left");
+
+        if (mCurrentPage == mMaxPages) 
+            MR::hidePaneRecursive(this, "Right");
+        else 
+            MR::showPaneRecursive(this, "Right");
+
         wchar_t completeTotalStr[2];
         completeTotalStr[1] = 0;
     
@@ -159,6 +170,16 @@ void BlueCoinList::exeChange() {
     }
 
     if (MR::isStep(this, 11)) {
+        if (mCurrentPage == 1)
+            MR::hidePaneRecursive(this, "Left");
+        else 
+            MR::showPaneRecursive(this, "Left");
+
+        if (mCurrentPage == mMaxPages) 
+            MR::hidePaneRecursive(this, "Right");
+        else 
+            MR::showPaneRecursive(this, "Right");
+
         populateListEntries();
         updateTextBoxes();
 
@@ -174,6 +195,30 @@ void BlueCoinList::exeChange() {
         setNerve(&NrvBlueCoinList::NrvWait::sInstance);
     }
 }
+
+void BlueCoinList::exeChangeFail() {
+    if (MR::isFirstStep(this)) {
+        mCurrentPage = mCurrentPage - mPageDirection;
+
+        MR::startSystemSE("SE_SY_STAR_RESULT_PANEL_NG", -1, -1);
+        const char* animName = "NextPageOver";
+            if (mPageDirection == -1) 
+                animName = "PreviousPageOver";
+
+        MR::startAnim(this, animName, 0);
+    }
+
+    MR::setNerveAtAnimStopped(this, &NrvBlueCoinList::NrvWait::sInstance, 0);
+}
+
+void BlueCoinList::exeClose() {
+    if (MR::isFirstStep(this))
+        MR::startAnim(this, "End", 0);
+    
+    if (MR::isStep(this, 20))
+        kill();
+}
+
 
 void BlueCoinList::exeWait() {
     if (MR::isFirstStep(this)) {
@@ -193,17 +238,21 @@ void BlueCoinList::exeWait() {
     mPageDirection = 0;
     s32 cursorDirection = 0;
 
-    if (mArrowRight->isPointingTrigger() || mArrowLeft->isPointingTrigger())
+    bool isLeftValid = !MR::isHiddenPane(this, "Left");
+    bool isRightValid = !MR::isHiddenPane(this, "Right");
+
+    if (isLeftValid && mArrowLeft->isPointingTrigger() || isRightValid && mArrowRight->isPointingTrigger())
         MR::startSystemSE("SE_SY_SELECT_PAUSE_ITEM", -1, -1);
 
-    if (MR::testCorePadTriggerLeft(0) || MR::testSubPadStickTriggerLeft(0) || mArrowLeft->trySelect()) {
+    if (MR::testCorePadTriggerLeft(0) || MR::testSubPadStickTriggerLeft(0) || isLeftValid && mArrowLeft->trySelect()) {
         mPageDirection = -1;
 
         if (!mArrowLeft->isDecidedWait())
             __kAutoMap_80461860(mArrowLeft);
     }
-    if (MR::testCorePadTriggerRight(0) || MR::testSubPadStickTriggerRight(0) || mArrowRight->trySelect()) {
-        mPageDirection = +1;
+
+    if (MR::testCorePadTriggerRight(0) || MR::testSubPadStickTriggerRight(0) || isRightValid && mArrowRight->trySelect()) {
+        mPageDirection = 1;
 
         if (!mArrowRight->isDecidedWait())
             __kAutoMap_80461860(mArrowRight);
@@ -212,13 +261,11 @@ void BlueCoinList::exeWait() {
     if (mPageDirection != 0) {
         mCurrentPage = mCurrentPage + mPageDirection;
         
-        if (mCurrentPage < 1) 
-            mCurrentPage = mMaxPages;
+        if (mCurrentPage < 1 || mCurrentPage == (mMaxPages+1))
+            setNerve(&NrvBlueCoinList::NrvChangeFail::sInstance);
+        else
+            setNerve(&NrvBlueCoinList::NrvChange::sInstance);
 
-        if (mCurrentPage > mMaxPages) 
-            mCurrentPage = 1;
-
-        setNerve(&NrvBlueCoinList::NrvChange::sInstance);
     }
     else {
         if (MR::testCorePadTriggerUp(0))
@@ -244,13 +291,6 @@ void BlueCoinList::exeWait() {
 }
 }
 
-void BlueCoinList::exeClose() {
-    if (MR::isFirstStep(this))
-        MR::startAnim(this, "End", 0);
-    
-    if (MR::isStep(this, 20))
-        kill();
-}
 
 void BlueCoinList::setCursorPosition(s32 slot) {
     char paneName[13];
@@ -313,7 +353,7 @@ void BlueCoinList::populateListEntries() {
         }
     }
 
-    printListDebugInfo();
+    //printListDebugInfo();
 }
 
 void BlueCoinList::updateTextBoxes() {
@@ -481,6 +521,10 @@ namespace NrvBlueCoinList {
         ((BlueCoinList*)pSpine->mExecutor)->exeChange();
     }
 
+    void NrvChangeFail::execute(Spine* pSpine) const {
+        ((BlueCoinList*)pSpine->mExecutor)->exeChangeFail();
+    }
+
     void NrvWait::execute(Spine* pSpine) const {
         ((BlueCoinList*)pSpine->mExecutor)->exeWait();
     }
@@ -493,6 +537,7 @@ namespace NrvBlueCoinList {
     NrvInit(NrvInit::sInstance);
     NrvAppear(NrvAppear::sInstance);
     NrvChange(NrvChange::sInstance);
+    NrvChangeFail(NrvChangeFail::sInstance);
     NrvWait(NrvWait::sInstance);
     NrvClose(NrvClose::sInstance);
 }

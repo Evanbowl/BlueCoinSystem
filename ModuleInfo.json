@@ -46,6 +46,47 @@
           "CoinAppearFunc" : "BlueCoinUtil::tryAppearBlueCoinActionKeeper",
           "Include" : "BlueCoinUtil.h"
         }
+      ],
+      "BranchFlow": [
+        {
+          "ID" : "27",
+          "BranchFunc": "BlueCoinUtil::isBlueCoinGotCurrentFile",
+          "Include": "BlueCoinUtil.h"
+        },
+        {
+          "ID" : "28",
+          "BranchFunc": "BlueCoinUtil::isOnBlueCoinFlagCurrentFile",
+          "Include": "BlueCoinUtil.h"
+        }
+      ],
+      "EventFlow": [
+        {
+          "ID" : "22",
+          "EventFunc": "BlueCoinUtil::setBlueCoinGotCurrentFile",
+          "Include": "BlueCoinUtil.h"
+        },
+        {
+          "ID" : "23",
+          "EventFunc": "BlueCoinUtil::setOnBlueCoinFlagCurrentFile",
+          "Include": "BlueCoinUtil.h"
+        }
+      ],
+      "ReplaceTag" : [
+        {
+          "ByteData": "20, 0, 0, 0",
+          "ReplaceFunc": "BlueCoinReplaceTag::getTotalBlueCoinNumCurrentFileForMsg",
+          "Include": "BlueCoinUtil.h"
+        },
+        {
+          "ByteData": "21, 0, 0, 0",
+          "ReplaceFunc": "BlueCoinReplaceTag::calcBlueCoinTotalInRangeForMsg",
+          "Include": "BlueCoinUtil.h"
+        },
+        {
+          "ByteData": "22, 0, 0, 0",
+          "ReplaceFunc": "BlueCoinReplaceTag::getSpentBlueCoinNumCurrentFileForMsg",
+          "Include": "BlueCoinUtil.h"
+        }
       ]
     }
   ]

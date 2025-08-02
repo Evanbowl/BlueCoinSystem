@@ -16,7 +16,7 @@ void BlueCoin::init(const JMapInfoIter& rIter) {
     mCoinInfo.mExistInDarkComet = true;
     mCoinInfo.mPlaySound = false;
     mCoinInfo.mUseReadSwitchB = false;
-    mCoinInfo.mIgnoreSensorScaling = true;
+    mCoinInfo.mIgnoreSensorScaling = false;
     mCoinInfo.mInitFunction = false;
     
     const char* name = "BlueCoin";
