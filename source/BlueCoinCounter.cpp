@@ -188,6 +188,10 @@ CounterLayoutControllerExt::CounterLayoutControllerExt() : CounterLayoutControll
     mBlueCoinCounter = 0;
 }
 
+CounterLayoutControllerExt::~CounterLayoutControllerExt() {
+    
+}
+
 CounterLayoutControllerExt* createCounterLayoutControllerExt() {
     return new CounterLayoutControllerExt();
 }
@@ -223,11 +227,11 @@ namespace NrvBlueCoinCounter {
     NrvShowTextBox(NrvShowTextBox::sInstance);
 }
 
-void createBlueCoinCounter(CounterLayoutControllerExt* pController, const Nerve* pNerve) {
-    if (!(MR::isStageFileSelect() || MR::isStageWorldMap())) {   
-        pController->mBlueCoinCounter = new BlueCoinCounter("BlueCoinCounter");
-        pController->mBlueCoinCounter->initWithoutIter();
-    }
+void createBlueCoinCounter(CounterLayoutControllerExt* pController, const Nerve* pNerve) { 
+    BlueCoinCounter* pCounter = new BlueCoinCounter("BlueCoinCounter");
+    pCounter->initWithoutIter();
+
+    pController->mBlueCoinCounter = pCounter;
 
     pController->initNerve(pNerve);
 }

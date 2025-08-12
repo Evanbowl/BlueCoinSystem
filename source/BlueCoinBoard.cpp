@@ -1,6 +1,7 @@
-#ifdef BLUECOINBOARD
-#include "BlueCoinBoard.h"
+#include "BlueCoinBoard.h"  
+#include "BlueCoin.h"  
 #include "BlueCoinUtil.h"
+#ifdef BLUECOINBOARD
 /*
     Super Mario Starshine: Blue Coin Board
 
@@ -11,7 +12,7 @@
 
     Made for Starshine only. Do not ask me for this in your mods.
 
-    First Concepted in 5/2023
+    First Planned in 5/2023
     Started 9/24/2023
     Finished 10/1/2023
     Revealed 10/2/2023
@@ -23,7 +24,6 @@
     
     I thank SPG64, Lord Giganticus, and Xandog for very helpful feedback.
 */
-void* gBoardDataTable = pt::loadArcAndFile("/SystemData/BlueCoinBoardDataTable.arc", "/BlueCoinBoardDataTable.bcsv", 0); 
 
 BlueCoinSign::BlueCoinSign(const char* pName) : NPCActor(pName) {
     pBoard = 0;
@@ -104,8 +104,7 @@ BlueCoinBoard::BlueCoinBoard(const char* pName) : LayoutActor(pName, 0) {
     mSysInfoWindowBox = 0;
     mBlueCoinPaneRumbler = 0;
     mBackButton = 0;
-    mTable = new JMapInfo();
-    mTable->attach(gBoardDataTable);
+    mTable = MR::tryCreateCsvParser("/SystemData/BlueCoinBoardDataTable.arc", "BlueCoinBoardDataTable.bcsv");
     mBlueCoinCounterFollowPos = TVec2f(0.0f, 0.0f);
     mSelectedButton = -1;
     mBlueCoinNumToDisplay = 0;
@@ -565,3 +564,13 @@ namespace NrvBlueCoinBoard {
     NrvConfirmPlayStage(NrvConfirmPlayStage::sInstance);
 }
 #endif
+
+NameObj* BlueCoinSignUtil::createBlueCoinSign(const char* pName) {
+    #ifdef BLUECOINBOARD
+        OSReport("Board Created\n");
+        return new BlueCoinSign(pName);
+    #else
+        OSReport("Board Disabled! Returning 0\n");
+        return new BlueCoin(pName);
+    #endif
+}

@@ -12,6 +12,7 @@ public:
 
     void exeAppear();
     void exeChange();
+    void exeChangeFail();
     void exeWait();
     void exeClose();
 
@@ -61,10 +62,15 @@ namespace NrvBlueCoinList {
     NERVE(NrvInit);
     NERVE(NrvAppear);
     NERVE(NrvChange);
+    NERVE(NrvChangeFail);
     NERVE(NrvWait);
     NERVE(NrvClose);
 };
 
-// These symbols are unknown
-void unkButtonPaneControllerForceSelect(ButtonPaneController*);
-bool unkBackButtonIsSelected(BackButton*);
+extern "C" {
+    // unkButtonPaneControllerForceSelect__FP20ButtonPaneController
+    void __kAutoMap_80461860(ButtonPaneController*);
+
+    // unkBackButtonIsSelected__FP10BackButton
+    bool __kAutoMap_8045E9D0(BackButton*);
+}

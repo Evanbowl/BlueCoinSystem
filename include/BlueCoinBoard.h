@@ -1,12 +1,13 @@
-#ifdef BLUECOINBOARD
-#pragma once
 #include "syati.h"
+
+#ifdef BLUECOINBOARD
 #include "BlueCoinUtil.h"
 #include "Game/Screen/ButtonPaneController.h"
 #include "Game/Screen/SysInfoWindow.h"
 #include "Game/Screen/CountUpPaneRumbler.h"
 #include "Game/Screen/BackButton.h"
 #include "Game/Map/PauseBlur.h"
+#pragma once
 
 #define BLUE_COIN_BOARD_COMPLETE 8
 
@@ -33,7 +34,7 @@ public:
     SysInfoWindow* mSysInfoWindowBox;
     CountUpPaneRumbler* mBlueCoinPaneRumbler;
     BackButtonCancelB* mBackButton;
-    JMapInfo* mTable;
+    const JMapInfo* mTable;
     TVec2f mButtonFollowPositions[8];
     TVec2f mBlueCoinCounterFollowPos;
     char mBoxButtonName[8][12];
@@ -77,3 +78,7 @@ namespace NrvBlueCoinSign {
     NERVE(NrvOpen);
 };
 #endif
+
+namespace BlueCoinSignUtil {
+    NameObj* createBlueCoinSign(const char* pName);
+};

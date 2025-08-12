@@ -4,20 +4,21 @@
   "Description": "PTD: Full Blue Coin System",
   "CompilerFlags" : [
     "-DBLUECOINSYSTEM",
-    "-DBLUECOINBOARD"
+    "-DBLUECOINBOARD" 
   ],
-  "InstallDependencies": ["Syati_ObjectFactories", "Syati_Init", "CustomCoinSpawns", "PTUtils"],
+  "InstallDependancies": ["Syati_ObjectFactories", "Syati_Init", "PTUtils", "CoinBase"],
+  "ModuleDependancies": ["PTUtils", "CoinBase_API"],
   "ModuleData" : [
     {
       "NameObjFactory": [
         {
           "Name" : "BlueCoin",
-          "Function" : "createExtActor<BlueCoin>",
-          "Include" : "BlueCoin.h"
+          "Function" : "BlueCoinUtil::createBlueCoin",
+          "Include" : "BlueCoinUtil.h"
         },
         {
           "Name" : "BlueCoinSign",
-          "Function" : "createExtActor<BlueCoinSign>",
+          "Function" : "BlueCoinSignUtil::createBlueCoinSign",
           "Include" : "BlueCoinBoard.h"
         }
       ],
@@ -34,8 +35,57 @@
         },
         {
           "Type1" : "1",
-          "Type2" : "8",
+          "Type2" : "7",
           "Path" : "/LayoutData/BlueCoinCounterInStage.arc"
+        }
+      ],
+      "CoinBaseSpawning": [
+        {
+          "ID" : "1",
+          "CoinCreateFunc" : "BlueCoinUtil::tryCreateBlueCoinForSpawningActorActionKeeper",
+          "CoinAppearFunc" : "BlueCoinUtil::tryAppearBlueCoinActionKeeper",
+          "Include" : "BlueCoinUtil.h"
+        }
+      ],
+      "BranchFlow": [
+        {
+          "ID" : "27",
+          "BranchFunc": "BlueCoinUtil::isBlueCoinGotCurrentFile",
+          "Include": "BlueCoinUtil.h"
+        },
+        {
+          "ID" : "28",
+          "BranchFunc": "BlueCoinUtil::isOnBlueCoinFlagCurrentFile",
+          "Include": "BlueCoinUtil.h"
+        }
+      ],
+      "EventFlow": [
+        {
+          "ID" : "22",
+          "EventFunc": "BlueCoinUtil::setBlueCoinGotCurrentFile",
+          "Include": "BlueCoinUtil.h"
+        },
+        {
+          "ID" : "23",
+          "EventFunc": "BlueCoinUtil::setOnBlueCoinFlagCurrentFile",
+          "Include": "BlueCoinUtil.h"
+        }
+      ],
+      "ReplaceTag" : [
+        {
+          "ByteData": "20, 0, 0, 0",
+          "ReplaceFunc": "BlueCoinReplaceTag::getTotalBlueCoinNumCurrentFileForMsg",
+          "Include": "BlueCoinUtil.h"
+        },
+        {
+          "ByteData": "21, 0, 0, 0",
+          "ReplaceFunc": "BlueCoinReplaceTag::calcBlueCoinTotalInRangeForMsg",
+          "Include": "BlueCoinUtil.h"
+        },
+        {
+          "ByteData": "22, 0, 0, 0",
+          "ReplaceFunc": "BlueCoinReplaceTag::getSpentBlueCoinNumCurrentFileForMsg",
+          "Include": "BlueCoinUtil.h"
         }
       ]
     }
