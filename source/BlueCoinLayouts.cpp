@@ -2,6 +2,7 @@
 #include "BlueCoinLayouts.h"
 #include "Game/Screen/PauseMenuExt.h"
 #include "GeneralUtil.h"
+#include "ExtGameDataUtil.h"
 
 #if defined TWN || defined KOR
 #define REGIONOFF 0x10
@@ -17,9 +18,11 @@ void initPauseMenuBlueCoin(PauseMenuExt* pPauseMenu) {
     MR::setTextBoxFormatRecursive(pPauseMenu, "ShaBlueCoinTotal", counterPictureFonts);
     MR::setTextBoxFormatRecursive(pPauseMenu, "ShaBlueCoinStage", counterPictureFonts);
 
-    BlueCoinList* pBlueCoinList = new BlueCoinList("BlueCoinList");
-    pBlueCoinList->initWithoutIter();
-    pPauseMenu->mBlueCoinList = pBlueCoinList;
+    if (BlueCoinUtil::isBlueCoinListLayoutExist()) {
+        BlueCoinList* pBlueCoinList = new BlueCoinList("BlueCoinList");
+        pBlueCoinList->initWithoutIter();
+        pPauseMenu->mBlueCoinList = pBlueCoinList;
+    }
 
     pPauseMenu->mIsExistBlueCoins = false;
 
@@ -152,12 +155,14 @@ void PauseMenuIDListControls(PauseMenuExt* pPauseMenu) {
 
         const char* pLabel = "PauseMenu_StarList";
 
-        if (pPauseMenu->mDisplayMode == 1)
-            pLabel = "PauseMenu_BlueCoinList";
-
-        MR::setTextBoxGameMessageRecursive(pPauseMenu, "StarList", pLabel);
         f32 frame = (f32)pPauseMenu->mDisplayMode;
-        MR::startPaneAnimAndSetFrameAndStop(pPauseMenu, "ListButton", "ChangeList", frame, 1);
+        if (pPauseMenu->mBlueCoinList) {
+            if (pPauseMenu->mDisplayMode == 1)
+                pLabel = "PauseMenu_BlueCoinList";
+
+            MR::setTextBoxGameMessageRecursive(pPauseMenu, "StarList", pLabel);
+            MR::startPaneAnimAndSetFrameAndStop(pPauseMenu, "ListButton", "ChangeList", frame, 1);
+        }
         
         if (pPauseMenu->mIsExistBlueCoins && !stagecheck) {
             MR::startPaneAnimAndSetFrameAndStop(pPauseMenu, "StageInfo", "Change", frame, 1);
@@ -174,8 +179,8 @@ bool PauseMenuIsStageBlueCoin(PauseMenuExt* pPauseMenu, int unused, const char* 
 }
 
 kmCall(0x80487424+REGIONOFF, PauseMenuIsStageBlueCoin);
-kmWrite32(0x80487428+REGIONOFF, 0x2C030001);
-kmWrite32(0x8048742C+REGIONOFF, 0x4182007C);
+kmWrite32(0x80487428+REGIONOFF, 0x2C030001); // cmpwi r3, 1
+kmWrite32(0x8048742C+REGIONOFF, 0x4182007C); // beq- 0x7C
 
 #ifndef PAUSEMENUNEWBUTTON
 PauseMenuExt* createPauseMenuExt() {
@@ -220,7 +225,7 @@ kmCall(0x804874D4+REGIONOFF, PauseMenuMoveButtonForBlueCoin); // bl PauseMenuMov
 #endif
 
 void setPauseMenuNerve(PauseMenuExt* pPauseMenu, const Nerve* pNerve) {
-    if (pPauseMenu->mDisplayMode == 1)
+    if (pPauseMenu->mDisplayMode == 1 && pPauseMenu->mBlueCoinList)
         pNerve = &NrvPauseMenuExt::NrvPauseMenuExtBlueCoinList::sInstance;
 
     pPauseMenu->setNerve(pNerve);
@@ -229,6 +234,9 @@ void setPauseMenuNerve(PauseMenuExt* pPauseMenu, const Nerve* pNerve) {
 kmCall(0x80487BD0, setPauseMenuNerve);
 
 void PauseMenuExt::exeBlueCoinList() {
+    if (!mBlueCoinList)
+        return;
+
     if (MR::isFirstStep(this))
         mBlueCoinList->appear();
 
@@ -249,16 +257,30 @@ void initBlueCoinCounterFileInfo(LayoutActor* pLayout) {
     MR::connectToSceneLayout(pLayout);
     MR::showPaneRecursive(pLayout, "BlueCoinFileInfo");
     MR::setTextBoxFormatRecursive(pLayout, "ShaBlueCoinFileInfo", counterPictureFonts);
+    *((u32*)pLayout+0x44) = 0;
 }
 
 kmCall(0x8046D908, initBlueCoinCounterFileInfo); // bl initBlueCoinCounterFileInfo
 
-void setBlueCoinCounterFileInfo(LayoutActor* pLayout, const char* pStr, s32 fileID) {
-    MR::setTextBoxArgNumberRecursive(pLayout, "ShaBlueCoinFileInfo", BlueCoinUtil::getTotalBlueCoinNum(fileID - 1, false), 0);
-    MR::setTextBoxNumberRecursive(pLayout, pStr, fileID);
+s32 getBlueCoinNumFromUserFile(UserFile* pFile) {
+    int* pFileSelector = 0;
+    asm("mr %0, r30" : "=r" (pFileSelector));
+    u32 pFileSelectInfo = *((u32*)pFileSelector+0x30);
+    BlueCoinDataStorage* pStorage = ((ExtGameDataHolder*)pFile->mGameDataHolder)->mBlueCoinDataStorage;
+    *((u32*)pFileSelectInfo+0x44) = BlueCoinUtil::getTotalBlueCoinNum(pStorage, false);
+    return pFile->getPowerStarNum();
 }
 
-kmCall(0x8046DCF8, setBlueCoinCounterFileInfo); // bl setBlueCoinCounterFileInfo
+kmCall(0x802504A4, getBlueCoinNumFromUserFile);
+
+kmWrite32(0x8024FB24, 0x38600114); // li r3, 0x114
+
+void displayNewVar(LayoutActor* pActor, const char* pStr, s32 l1) {
+    MR::setTextBoxNumberRecursive(pActor, pStr, l1);
+    MR::setTextBoxArgNumberRecursive(pActor, "ShaBlueCoinFileInfo", *((u32*)pActor+0x44), 0);
+}
+
+kmCall(0x8046DCF8, displayNewVar);
 
 #ifdef DISABLED
 void initGalaxyInfoBlueCoinCount(LayoutActor* actor) {

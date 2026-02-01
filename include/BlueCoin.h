@@ -9,8 +9,8 @@ class BlueCoin : public CoinBase {
     BlueCoin(const char*);
     virtual void init(const JMapInfoIter& rIter);
     virtual void control();
-    virtual bool vRequestGetCoin();
-
+    
+    bool requestGetCoin();
     void onSwitchAppear();
 
     s32 mID;

@@ -6,8 +6,13 @@
     "-DBLUECOINSYSTEM",
     "-DBLUECOINBOARD" 
   ],
-  "InstallDependancies": ["Syati_ObjectFactories", "Syati_Init", "PTUtils", "CoinBase"],
-  "ModuleDependancies": ["PTUtils", "CoinBase_API"],
+  "InstallDependancies": ["CoinBase", "ExtStationedFileTable", "PTUtils", "Syati_ExtGameData", "Syati_Init", "Syati_ObjectFactories"],
+  "RequiredAPIs": ["PTUtils", "CoinBase_API", "Syati_ExtGameData_API"],
+  "SupportedGames": [
+    "SB4E",
+    "SB4P",
+    "SB4J"
+  ],
   "ModuleData" : [
     {
       "NameObjFactory": [
@@ -37,6 +42,11 @@
           "Type1" : "1",
           "Type2" : "7",
           "Path" : "/LayoutData/BlueCoinCounterInStage.arc"
+        },
+        {
+          "Type1" : "1",
+          "Type2" : "1",
+          "Path" : "/SystemData/BlueCoinIDRangeTable.arc"
         }
       ],
       "CoinBaseSpawning": [
@@ -86,6 +96,14 @@
           "ByteData": "22, 0, 0, 0",
           "ReplaceFunc": "BlueCoinReplaceTag::getSpentBlueCoinNumCurrentFileForMsg",
           "Include": "BlueCoinUtil.h"
+        }
+      ],
+      "NewSaveChunk": [
+        {
+          "ChunkMemberType": "BlueCoinDataStorage",
+          "ChunkMemberName": "mBlueCoinDataStorage",
+          "ChunkCreationFunc": "createBinaryChunk<BlueCoinDataStorage>",
+          "Include": "BlueCoinDataStorage.h"
         }
       ]
     }

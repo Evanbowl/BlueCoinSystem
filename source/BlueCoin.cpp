@@ -18,7 +18,7 @@ void BlueCoin::init(const JMapInfoIter& rIter) {
     mCoinInfo.mUseReadSwitchB = false;
     mCoinInfo.mIgnoreSensorScaling = false;
     mCoinInfo.mInitFunction = false;
-    
+
     const char* name = "BlueCoin";
     
     if (MR::isValidInfo(rIter)) {
@@ -66,17 +66,12 @@ void BlueCoin::control() {
 
 void BlueCoin::onSwitchAppear() {
     OSReport("Yes\n");
-    MR::validateHitSensors(this);
+    appearFixInit();
 }
 
-bool BlueCoin::vRequestGetCoin() {
-    #if defined SMG63 
-        MR::emitEffect(this, "BlueCoinGet"); 
-        MR::startSystemSE("SE_SY_TICO_COIN", -1, -1);
-    #else
-        MR::emitEffect(this, BlueCoinUtil::isBlueCoinGotCurrentFile(mID) ? "BlueCoinClearGet" : "BlueCoinGet"); 
-        MR::startSystemSE("SE_SY_PURPLE_COIN", -1, -1);
-    #endif
+bool BlueCoin::requestGetCoin() {
+    MR::tryEmitEffect(this, BlueCoinUtil::isBlueCoinGotCurrentFile(mID) ? "BlueCoinClearGet" : "BlueCoinGet"); 
+    MR::startSystemSE("SE_SY_PURPLE_COIN", -1, -1);
 
     mFlashingCtrl->end();
     setNerve(&NrvCoin::CoinNrvGot::sInstance);

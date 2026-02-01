@@ -24,7 +24,7 @@ BlueCoinList::BlueCoinList(const char* pName) : LayoutActor(pName, false) {
     mPageDirection = 0;
     mCursorPosition = 0;
     mMaxPages = 1;
-    mDefaultCursorPosition = 1;
+    mDefaultCursorPosition = 7;
     mDefaultPage = 1;
 }
 
@@ -42,8 +42,12 @@ void BlueCoinList::init(const JMapInfoIter& rIter) {
     MR::createAndAddPaneCtrl(this, "Galaxy", 1);
 
     initNerve(&NrvBlueCoinList::NrvInit::sInstance);
-    
-    mRangeTable = BlueCoinUtil::getBlueCoinIDRangeTable();
+
+    JMapInfo* pInfo = new JMapInfo();
+    void* pData = MR::mountAsyncArchive("/SystemData/BlueCoinIDRangeTable.arc")->getResource("BlueCoinIDRangeTable.bcsv");
+    pInfo->attach(pData);
+
+    mRangeTable = pInfo;
 
     mArrowRight = new ButtonPaneController(this, "Right", "BoxArrowR", 0, 1);
     mArrowRight->mFadeAfterSelect = false;
@@ -101,11 +105,6 @@ void BlueCoinList::exeAppear() {
         mCursorPosition = mDefaultCursorPosition;
         mCurrentPage = mDefaultPage;
 
-        populateListEntries();
-        updateTextBoxes();
-        updateBlueCoinTextPane();
-        setCursorPosition(mCursorPosition);
-
         MR::setTextBoxGameMessageRecursive(this, "ShaTotals", "BlueCoinList_Totals");
 
         
@@ -134,24 +133,30 @@ void BlueCoinList::exeAppear() {
 
         MR::setTextBoxGameMessageRecursive(this, "ShaProgress", "BlueCoinList_Progress");
 
+        
+        MR::startPaneAnimAndSetFrameAndStop(this, "WinGalaxy", "Visibility", 0.0f, 0);
+        
+        MR::setTextBoxGameMessageRecursive(this, "ShaBlueCoinT", "BlueCoinList_Counter");
+        MR::setTextBoxArgNumberRecursive(this, "ShaBlueCoinT", BlueCoinUtil::getTotalBlueCoinNumCurrentFile(false), 0);
+        
+        wchar_t bufProgressT[6];
+        pt::str2wcsfullwidth(bufProgressT, mBlueCoinTotalCount);
+        
+        MR::setTextBoxFormatRecursive(this, "ShaCoinMaxT", bufProgressT);
+        
+        MR::setTextBoxGameMessageRecursive(this, "ShaBlueCoinP", "BlueCoinList_Counter");
+        MR::setTextBoxArgNumberRecursive(this, "ShaBlueCoinP", mTotalCollectedCoinsInPage, 0);
+        
+        MR::startAnim(this, "Appear", 0);
+        
+        populateListEntries();
+        updateTextBoxes();
+        updateBlueCoinTextPane();
+        setCursorPosition(mCursorPosition);
+        
         MR::setTextBoxGameMessageRecursive(this, "InfoPage", "BlueCoinList_Page");
         MR::setTextBoxArgNumberRecursive(this, "InfoPage", mCurrentPage, 0);
         MR::setTextBoxArgNumberRecursive(this, "InfoPage", mMaxPages, 1);
-
-        MR::startPaneAnimAndSetFrameAndStop(this, "WinGalaxy", "Visibility", 0.0f, 0);
-
-        MR::setTextBoxGameMessageRecursive(this, "ShaBlueCoinT", "BlueCoinList_Counter");
-        MR::setTextBoxArgNumberRecursive(this, "ShaBlueCoinT", BlueCoinUtil::getTotalBlueCoinNumCurrentFile(false), 0);
-
-        wchar_t bufProgressT[6];
-        pt::str2wcsfullwidth(bufProgressT, mBlueCoinTotalCount);
-
-        MR::setTextBoxFormatRecursive(this, "ShaCoinMaxT", bufProgressT);
-
-        MR::setTextBoxGameMessageRecursive(this, "ShaBlueCoinP", "BlueCoinList_Counter");
-        MR::setTextBoxArgNumberRecursive(this, "ShaBlueCoinP", mTotalCollectedCoinsInPage, 0);
-
-        MR::startAnim(this, "Appear", 0);
     }
 
     if (MR::isStep(this, 20))
@@ -235,60 +240,60 @@ void BlueCoinList::exeWait() {
     }
     else {
 
-    mPageDirection = 0;
-    s32 cursorDirection = 0;
+        mPageDirection = 0;
+        s32 cursorDirection = 0;
 
-    bool isLeftValid = !MR::isHiddenPane(this, "Left");
-    bool isRightValid = !MR::isHiddenPane(this, "Right");
+        bool isLeftValid = !MR::isHiddenPane(this, "Left");
+        bool isRightValid = !MR::isHiddenPane(this, "Right");
 
-    if (isLeftValid && mArrowLeft->isPointingTrigger() || isRightValid && mArrowRight->isPointingTrigger())
-        MR::startSystemSE("SE_SY_SELECT_PAUSE_ITEM", -1, -1);
+        if (isLeftValid && mArrowLeft->isPointingTrigger() || isRightValid && mArrowRight->isPointingTrigger())
+            MR::startSystemSE("SE_SY_SELECT_PAUSE_ITEM", -1, -1);
 
-    if (MR::testCorePadTriggerLeft(0) || MR::testSubPadStickTriggerLeft(0) || isLeftValid && mArrowLeft->trySelect()) {
-        mPageDirection = -1;
+        if (MR::testCorePadTriggerLeft(0) || MR::testSubPadStickTriggerLeft(0) || isLeftValid && mArrowLeft->trySelect()) {
+            mPageDirection = -1;
 
-        if (!mArrowLeft->isDecidedWait())
-            __kAutoMap_80461860(mArrowLeft);
-    }
-
-    if (MR::testCorePadTriggerRight(0) || MR::testSubPadStickTriggerRight(0) || isRightValid && mArrowRight->trySelect()) {
-        mPageDirection = 1;
-
-        if (!mArrowRight->isDecidedWait())
-            __kAutoMap_80461860(mArrowRight);
-    }
-
-    if (mPageDirection != 0) {
-        mCurrentPage = mCurrentPage + mPageDirection;
-        
-        if (mCurrentPage < 1 || mCurrentPage == (mMaxPages+1))
-            setNerve(&NrvBlueCoinList::NrvChangeFail::sInstance);
-        else
-            setNerve(&NrvBlueCoinList::NrvChange::sInstance);
-
-    }
-    else {
-        if (MR::testCorePadTriggerUp(0))
-            cursorDirection = -1;
-        if (MR::testCorePadTriggerDown(0))
-            cursorDirection = 1;
-    }
-
-
-    if (cursorDirection != 0) {
-        mCursorPosition = (mCursorPosition +cursorDirection) % 8;
-        
-        while (mCursorPosition != 7 && mCursorPosition != -1 && isEntryBlank(getEntry(mCursorPosition))) {
-            mCursorPosition = (mCursorPosition +cursorDirection) % 8;
+            if (!mArrowLeft->isDecidedWait())
+                __kAutoMap_80461860(mArrowLeft);
         }
 
-        if (mCursorPosition == -1)
-            mCursorPosition = 7;
+        if (MR::testCorePadTriggerRight(0) || MR::testSubPadStickTriggerRight(0) || isRightValid && mArrowRight->trySelect()) {
+            mPageDirection = 1;
 
-        setCursorPosition(mCursorPosition);
-        updateBlueCoinTextPane();
+            if (!mArrowRight->isDecidedWait())
+                __kAutoMap_80461860(mArrowRight);
+        }
+
+        if (mPageDirection != 0) {
+            mCurrentPage = mCurrentPage + mPageDirection;
+
+            if (mCurrentPage < 1 || mCurrentPage == (mMaxPages+1))
+                setNerve(&NrvBlueCoinList::NrvChangeFail::sInstance);
+            else
+                setNerve(&NrvBlueCoinList::NrvChange::sInstance);
+
+        }
+        else {
+            if (MR::testCorePadTriggerUp(0))
+                cursorDirection = -1;
+            if (MR::testCorePadTriggerDown(0))
+                cursorDirection = 1;
+        }
+
+
+        if (cursorDirection != 0) {
+            mCursorPosition = (mCursorPosition +cursorDirection) % 8;
+
+            while (mCursorPosition != 7 && mCursorPosition != -1 && isEntryBlank(getEntry(mCursorPosition))) {
+                mCursorPosition = (mCursorPosition +cursorDirection) % 8;
+            }
+
+            if (mCursorPosition == -1)
+                mCursorPosition = 7;
+
+            setCursorPosition(mCursorPosition);
+            updateBlueCoinTextPane();
+        }
     }
-}
 }
 
 
@@ -302,7 +307,6 @@ void BlueCoinList::setCursorPosition(s32 slot) {
     TBox2f txtPaneBox;
     MR::calcTextBoxRectRecursive(&txtPaneBox, this, paneName);
     f32 strLength = txtPaneBox.mPointMax.x-txtPaneBox.mPointMin.x;
-
     MR::startPaneAnimAndSetFrameAndStop(this, "Cursor", "CursorScale", strLength+32.0f, 0);
     MR::startPaneAnimAndSetFrameAndStop(this, "Cursor", "CursorPosition", (f32)slot, 1);
 }
