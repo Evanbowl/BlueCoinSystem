@@ -110,31 +110,3 @@ void makeNewFileUpdateLocked(UserFile* pFile) {
 }
 
 kmCall(0x804D9B80, makeNewFileUpdateLocked);
-
-kmWrite32(0x80142C34, 0x48000008);
-
-void ScenarioStarterGetArg(LiveActor* pActor, const JMapInfoIter& rIter) {
-    MR::initDefaultPos(pActor, rIter);
-
-    s32 type = 0;
-    MR::getJMapInfoArg1NoInit(rIter, &type);
-    bool* arg = (bool*)((bool*)pActor+0x159);
-    *arg = false;
-
-    switch (type) {
-        case 1:
-            *arg = true;
-        break;
-        case 2:
-            *arg = !MR::isAlreadyVisitedCurrentStageAndScenario();
-        break;
-        default:
-            type = MR::isIslandFleetGalaxy1FirstTime();
-        break;
-    }
-
-}
-
-kmCall(0x80142A64, ScenarioStarterGetArg);
-
-kmWrite32(0x8031FFF0, 0x38000001);
